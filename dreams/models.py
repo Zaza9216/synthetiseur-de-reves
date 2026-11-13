@@ -51,14 +51,14 @@ class EmotionStyle(NamedTuple):
 
 
 EMOTION_STYLES: dict[str, EmotionStyle] = {
-    Emotion.HEUREUX: EmotionStyle("bi-emoji-laughing", "success", "#198754"),
-    Emotion.STRESSANT: EmotionStyle("bi-lightning-charge", "danger", "#dc3545"),
-    Emotion.TRISTE: EmotionStyle("bi-cloud-drizzle", "primary", "#0d6efd"),
-    Emotion.COLERE: EmotionStyle("bi-fire", "warning", "#fd7e14"),
-    Emotion.SURPRENANT: EmotionStyle("bi-stars", "info", "#0dcaf0"),
-    Emotion.NEUTRE: EmotionStyle("bi-emoji-neutral", "secondary", "#6c757d"),
+    Emotion.HEUREUX: EmotionStyle("bi-emoji-laughing", "success", "#fcd34d"),
+    Emotion.STRESSANT: EmotionStyle("bi-lightning-charge", "danger", "#f87171"),
+    Emotion.TRISTE: EmotionStyle("bi-cloud-drizzle", "primary", "#60a5fa"),
+    Emotion.COLERE: EmotionStyle("bi-fire", "warning", "#fb923c"),
+    Emotion.SURPRENANT: EmotionStyle("bi-stars", "info", "#c084fc"),
+    Emotion.NEUTRE: EmotionStyle("bi-emoji-neutral", "secondary", "#94a3b8"),
 }
-UNKNOWN_EMOTION_STYLE = EmotionStyle("bi-question-circle", "light", "#adb5bd")
+UNKNOWN_EMOTION_STYLE = EmotionStyle("bi-question-circle", "light", "#b8a9ff")
 
 
 class Status(models.TextChoices):

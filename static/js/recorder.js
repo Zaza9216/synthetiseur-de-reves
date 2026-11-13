@@ -28,6 +28,8 @@
   const btnSend = el("btn-send");
   const review = el("recorder-review");
   const preview = el("recorder-preview");
+  const hint = el("record-hint");
+  const waveform = el("recorder-waveform");
 
   // Formats proposés au navigateur, par ordre de préférence (Chrome/Firefox : webm, Safari : mp4).
   const MIME_TYPES = [
@@ -43,6 +45,58 @@
   let startedAt = 0;
   let tickHandle = null;
   let recording = null; // { blob, extension, duration }
+  let audioContext = null;
+  let drawHandle = null;
+
+  /** Dessine l'onde de la voix en direct (Web Audio API), en couleur lavande. */
+  function startWaveform(mediaStream) {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx || !waveform) return;
+    show(waveform, true);
+    audioContext = new AudioCtx();
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 1024;
+    audioContext.createMediaStreamSource(mediaStream).connect(analyser);
+    const samples = new Uint8Array(analyser.fftSize);
+    const context = waveform.getContext("2d");
+    const ratio = window.devicePixelRatio || 1;
+
+    const draw = () => {
+      const width = waveform.clientWidth;
+      const height = waveform.clientHeight;
+      if (waveform.width !== width * ratio) {
+        waveform.width = width * ratio;
+        waveform.height = height * ratio;
+        context.scale(ratio, ratio);
+      }
+      analyser.getByteTimeDomainData(samples);
+      context.clearRect(0, 0, width, height);
+      const gradient = context.createLinearGradient(0, 0, width, 0);
+      gradient.addColorStop(0, "#9d8bff");
+      gradient.addColorStop(1, "#8fd3ff");
+      context.strokeStyle = gradient;
+      context.lineWidth = 2.5;
+      context.shadowColor = "rgba(184, 169, 255, 0.8)";
+      context.shadowBlur = 10;
+      context.beginPath();
+      const step = width / samples.length;
+      samples.forEach((value, index) => {
+        const y = (value / 255) * height;
+        if (index === 0) context.moveTo(0, y);
+        else context.lineTo(index * step, y);
+      });
+      context.stroke();
+      drawHandle = requestAnimationFrame(draw);
+    };
+    draw();
+  }
+
+  function stopWaveform() {
+    cancelAnimationFrame(drawHandle);
+    if (audioContext) audioContext.close();
+    audioContext = null;
+    if (waveform) show(waveform, false);
+  }
 
   const show = (node, visible) => node.classList.toggle("d-none", !visible);
 
@@ -101,11 +155,15 @@
       recording = { blob, extension, duration };
       preview.src = URL.createObjectURL(blob);
       stream.getTracks().forEach((track) => track.stop());
+      stopWaveform();
       show(btnStop, false);
       show(review, true);
+      hint.textContent = "Réécoutez votre récit, puis envoyez-le.";
     });
 
     recorder.start(1000);
+    startWaveform(stream);
+    hint.textContent = "Je vous écoute… appuyez sur stop quand vous avez fini.";
     startedAt = Date.now();
     tickHandle = setInterval(tick, 250);
     show(btnStart, false);
@@ -127,6 +185,7 @@
     progress.style.width = "0%";
     show(review, false);
     show(btnStart, true);
+    hint.textContent = "Appuyez sur le micro et racontez votre rêve";
     btnStart.focus();
   }
 

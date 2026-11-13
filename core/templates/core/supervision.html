@@ -7,7 +7,7 @@
   <h1 class="h3 mb-0"><i class="bi bi-activity"></i> Supervision</h1>
   <div class="btn-group btn-group-sm" role="group" aria-label="Fenêtre d'observation">
     {% for w in windows %}
-      <a href="?fenetre={{ w }}" class="btn btn-outline-dark{% if w == window %} active{% endif %}"
+      <a href="?fenetre={{ w }}" class="btn btn-ghost{% if w == window %} active{% endif %}"
          {% if w == window %}aria-current="true"{% endif %}>{{ w }}</a>
     {% endfor %}
   </div>
@@ -19,13 +19,13 @@
 </p>
 
 {# --- Budget ------------------------------------------------------------------ #}
-<div class="card card-body shadow-sm mb-4">
+<div class="card card-body mb-4">
   <div class="d-flex justify-content-between">
     <h2 class="h6 mb-2">Budget IA du mois</h2>
     <span class="small" data-testid="budget">{{ budget.spent_usd|floatformat:4 }} $ / {{ budget.budget_usd|floatformat:0 }} $ ({{ budget.percent }} %)</span>
   </div>
   <div class="progress" role="progressbar" aria-label="Budget consommé" aria-valuenow="{{ budget.percent }}" aria-valuemin="0" aria-valuemax="100">
-    <div class="progress-bar bg-{{ budget.level }}" style="width: {% if budget.percent > 100 %}100{% else %}{{ budget.percent }}{% endif %}%"></div>
+    <div class="progress-bar progress-bar-flat bg-{{ budget.level }}" style="width: {% if budget.percent > 100 %}100{% else %}{{ budget.percent }}{% endif %}%"></div>
   </div>
 </div>
 
@@ -33,23 +33,23 @@
 <h2 class="h5">Traitement des rêves ({{ window }})</h2>
 <div class="row g-3 mb-4">
   {% with d=dreams %}
-  <div class="col-6 col-lg-2"><div class="card card-body shadow-sm h-100"><div class="small text-secondary">Créés</div><div class="fs-4 fw-bold">{{ d.created }}</div></div></div>
-  <div class="col-6 col-lg-2"><div class="card card-body shadow-sm h-100"><div class="small text-secondary">Terminés</div><div class="fs-4 fw-bold text-success">{{ d.completed }}</div></div></div>
-  <div class="col-6 col-lg-2"><div class="card card-body shadow-sm h-100"><div class="small text-secondary">Échecs</div><div class="fs-4 fw-bold{% if d.failed %} text-danger{% endif %}">{{ d.failed }}</div></div></div>
-  <div class="col-6 col-lg-2"><div class="card card-body shadow-sm h-100"><div class="small text-secondary">En cours</div><div class="fs-4 fw-bold">{{ d.in_progress }}</div></div></div>
-  <div class="col-6 col-lg-2"><div class="card card-body shadow-sm h-100"><div class="small text-secondary">Taux de succès</div><div class="fs-4 fw-bold" data-testid="success-rate">{% if d.success_rate is not None %}{{ d.success_rate }} %{% else %}—{% endif %}</div></div></div>
-  <div class="col-6 col-lg-2"><div class="card card-body shadow-sm h-100"><div class="small text-secondary">Durée p50 / p95</div><div class="fs-5 fw-bold">{% if d.processing_p50_s is not None %}{{ d.processing_p50_s|floatformat:1 }} s / {{ d.processing_p95_s|floatformat:1 }} s{% else %}—{% endif %}</div></div></div>
+  <div class="col-6 col-lg-2"><div class="card card-body h-100"><div class="small text-secondary">Créés</div><div class="fs-4 fw-bold">{{ d.created }}</div></div></div>
+  <div class="col-6 col-lg-2"><div class="card card-body h-100"><div class="small text-secondary">Terminés</div><div class="fs-4 fw-bold step-done">{{ d.completed }}</div></div></div>
+  <div class="col-6 col-lg-2"><div class="card card-body h-100"><div class="small text-secondary">Échecs</div><div class="fs-4 fw-bold{% if d.failed %} text-danger{% endif %}">{{ d.failed }}</div></div></div>
+  <div class="col-6 col-lg-2"><div class="card card-body h-100"><div class="small text-secondary">En cours</div><div class="fs-4 fw-bold">{{ d.in_progress }}</div></div></div>
+  <div class="col-6 col-lg-2"><div class="card card-body h-100"><div class="small text-secondary">Taux de succès</div><div class="fs-4 fw-bold" data-testid="success-rate">{% if d.success_rate is not None %}{{ d.success_rate }} %{% else %}—{% endif %}</div></div></div>
+  <div class="col-6 col-lg-2"><div class="card card-body h-100"><div class="small text-secondary">Durée p50 / p95</div><div class="fs-5 fw-bold">{% if d.processing_p50_s is not None %}{{ d.processing_p50_s|floatformat:1 }} s / {{ d.processing_p95_s|floatformat:1 }} s{% else %}—{% endif %}</div></div></div>
   {% endwith %}
 </div>
 {% if dreams.missing_image %}
-  <p class="small text-warning-emphasis"><i class="bi bi-image"></i> {{ dreams.missing_image }} rêve{{ dreams.missing_image|pluralize }} terminé{{ dreams.missing_image|pluralize }} sans image.</p>
+  <p class="small" style="color: #fcd34d;"><i class="bi bi-image"></i> {{ dreams.missing_image }} rêve{{ dreams.missing_image|pluralize }} terminé{{ dreams.missing_image|pluralize }} sans image.</p>
 {% endif %}
 
 {# --- Services d'IA ---------------------------------------------------------------- #}
 <h2 class="h5">Services d'IA ({{ window }})</h2>
-<div class="table-responsive mb-4">
-  <table class="table table-sm align-middle bg-white shadow-sm">
-    <thead class="table-light">
+<div class="card card-body table-responsive mb-4 p-2">
+  <table class="table table-sm align-middle mb-0">
+    <thead>
       <tr><th scope="col">Service</th><th scope="col" class="text-end">Appels</th><th scope="col" class="text-end">Échecs</th>
           <th scope="col" class="text-end">Latence p50</th><th scope="col" class="text-end">Latence p95</th>
           <th scope="col" class="text-end">Coût</th><th scope="col" class="text-end">Repli lexique</th></tr>
@@ -82,6 +82,6 @@
     {% endfor %}
   </ul>
 {% else %}
-  <p class="text-success"><i class="bi bi-check-circle"></i> Aucune erreur enregistrée.</p>
+  <p class="step-done"><i class="bi bi-check-circle"></i> Aucune erreur enregistrée.</p>
 {% endif %}
 {% endblock %}

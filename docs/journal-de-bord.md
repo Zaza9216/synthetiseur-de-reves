@@ -186,3 +186,20 @@ Ce journal alimente le rapport technique et la code review.
 - **Démarrage :** `scripts/start.sh` applique les migrations, crée le compte administrateur depuis les variables d'environnement (pas de terminal sur l'offre gratuite), puis lance Gunicorn en mode `gthread` (2 processus × 4 fils).
 - **Répétition générale en local :** Gunicorn avec `DEBUG=False`, logs JSON, stockage en base. Sonde de santé OK avec un `Host` interne, domaine inconnu refusé (400), fichier sans connexion redirigé, administrateur créé.
 - **Limite connue :** les logs d'accès de Gunicorn restent au format texte. Seuls les logs de l'application sont en JSON.
+
+---
+
+## Sprint 4 : qualité, design et livrables
+
+### Refonte visuelle « Nuit étoilée » (#32)
+- **Constat :** l'interface utilisait Bootstrap presque sans personnalisation. Elle fonctionnait mais avait l'air générique, alors que le sujet demande une « interface agréable » qui « donne envie d'être réutilisée ».
+- **Direction choisie :** thème sombre bleu nuit → violet, cohérent avec l'univers du rêve et qui met en valeur les illustrations générées.
+- **Réalisation :**
+  - surcouche CSS de Bootstrap 5.3 en mode sombre (`static/css/theme.css`) : variables de couleur, cartes translucides (verre dépoli), ciel étoilé en CSS pur (aucune image à charger) ;
+  - typographie : *Fraunces* (serif) pour les titres, *Inter* pour le texte ;
+  - couleurs d'émotion revues pour le fond sombre (heureux devient doré au lieu de vert) et utilisées partout via une variable CSS `--emo` : badges, halos des images, visuels de remplacement, graphiques ;
+  - accueil en 3 étapes (Racontez, Comprenez, Revivez) ;
+  - enregistreur : grand bouton micro qui pulse pendant l'enregistrement, **onde de la voix en direct** (Web Audio API, `AnalyserNode`).
+- **Accessibilité vérifiée :** contraste WCAG **AA** pour toutes les couleurs de texte (de 6,3:1 à 15:1) ; focus clavier visible ; animations désactivées si l'utilisateur préfère réduire les mouvements ; libellés pour lecteurs d'écran sur les boutons réduits à une icône.
+- **Méthode :** captures automatiques avant/après, sur ordinateur et sur mobile (Playwright, `scripts/captures.py`). Elles ont révélé trois défauts corrigés avant la PR : barre de navigation débordante sur mobile, fond gris sous la ligne de flottaison, éléments de la supervision illisibles sur fond sombre.
+- **Captures :** `docs/captures/avant-*.jpg` et `docs/captures/apres-*.jpg`.

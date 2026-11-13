@@ -1,6 +1,6 @@
 {# Badge d'émotion : icône + libellé + score. Attend une variable `dream`. #}
 {% if dream.emotion %}
-  <span class="badge text-bg-{{ dream.emotion_style.color }}">
+  <span class="badge rounded-pill emo-badge" style="--emo: {{ dream.emotion_style.hex }}">
     <i class="bi {{ dream.emotion_style.icon }}" aria-hidden="true"></i>
     {{ dream.get_emotion_display }}{% if dream.emotion_percent is not None %} · {{ dream.emotion_percent }} %{% endif %}
   </span>

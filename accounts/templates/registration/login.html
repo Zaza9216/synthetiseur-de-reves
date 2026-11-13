@@ -3,16 +3,17 @@
 {% block title %}Connexion · Synthétiseur de rêves{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center py-4 py-md-5">
   <div class="col-md-6 col-lg-5">
-    <div class="card shadow-sm">
+    <div class="card">
       <div class="card-body p-4">
-        <h1 class="h3 mb-4">Connexion</h1>
+        <div class="text-center mb-3"><i class="bi bi-moon-stars fs-1" style="color: var(--moon);" aria-hidden="true"></i></div>
+        <h1 class="h3 mb-4 text-center">Connexion</h1>
         <form method="post" novalidate>
           {% csrf_token %}
           {% include "includes/form_fields.html" %}
           <input type="hidden" name="next" value="{{ next }}">
-          <button type="submit" class="btn btn-primary w-100">Se connecter</button>
+          <button type="submit" class="btn btn-primary w-100 rounded-pill py-2">Se connecter</button>
         </form>
         <p class="mt-3 mb-0 text-center">
           Pas encore de compte ? <a href="{% url 'accounts:signup' %}">Créer un compte</a>

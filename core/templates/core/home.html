@@ -1,19 +1,52 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="text-center py-5">
-  <h1 class="display-5 fw-bold"><i class="bi bi-moon-stars"></i> Synthétiseur de rêves</h1>
-  <p class="lead text-secondary mt-3">
-    Racontez votre rêve à voix haute : il est transcrit, son émotion est analysée
-    et une image l'illustre. Retrouvez ensuite tous vos rêves dans votre espace.
+<section class="hero text-center">
+  <div class="hero-moon" aria-hidden="true"></div>
+  <h1 class="display-4 mb-3"><span class="text-gradient">Synthétiseur de rêves</span></h1>
+  <p class="lead mx-auto mb-4" style="max-width: 640px; color: var(--text-soft);">
+    Racontez votre rêve à voix haute au réveil. Il est transcrit, son émotion est analysée
+    et une illustration lui donne vie. Retrouvez ensuite tous vos rêves dans votre espace.
   </p>
-  <div class="mt-4 d-flex justify-content-center gap-2">
+  <div class="d-flex flex-wrap justify-content-center gap-2">
     {% if user.is_authenticated %}
-      <a href="{% url 'dreams:list' %}" class="btn btn-primary btn-lg">Voir mes rêves</a>
+      <a href="{% url 'dreams:create' %}" class="btn btn-primary btn-lg rounded-pill px-4"><i class="bi bi-mic"></i> Raconter un rêve</a>
+      <a href="{% url 'dreams:list' %}" class="btn btn-ghost btn-lg rounded-pill px-4">Voir mes rêves</a>
     {% else %}
-      <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg">Commencer</a>
-      <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-lg">J'ai déjà un compte</a>
+      <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg rounded-pill px-4">Commencer</a>
+      <a href="{% url 'accounts:login' %}" class="btn btn-ghost btn-lg rounded-pill px-4">J'ai déjà un compte</a>
     {% endif %}
   </div>
-</div>
+</section>
+
+<section aria-labelledby="how-title" class="pb-5">
+  <h2 id="how-title" class="visually-hidden">Comment ça marche</h2>
+  <div class="row g-3 g-lg-4">
+    <div class="col-md-4">
+      <div class="card step-card h-100">
+        <div><span class="step-icon"><i class="bi bi-mic" aria-hidden="true"></i></span></div>
+        <h3 class="h5">1. Racontez</h3>
+        <p class="mb-0 text-secondary">Parlez librement, comme à un proche. Quelques secondes suffisent, jusqu'à 5 minutes.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card step-card h-100">
+        <div><span class="step-icon"><i class="bi bi-heart-pulse" aria-hidden="true"></i></span></div>
+        <h3 class="h5">2. Comprenez</h3>
+        <p class="mb-0 text-secondary">Votre récit est transcrit et son émotion dominante identifiée : heureux, stressant, triste…</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card step-card h-100">
+        <div><span class="step-icon"><i class="bi bi-stars" aria-hidden="true"></i></span></div>
+        <h3 class="h5">3. Revivez</h3>
+        <p class="mb-0 text-secondary">Une illustration onirique est créée, et votre tableau de bord suit l'évolution de vos émotions.</p>
+      </div>
+    </div>
+  </div>
+  <p class="text-center small text-secondary mt-4 mb-0">
+    <i class="bi bi-shield-lock" aria-hidden="true"></i>
+    Vos rêves et enregistrements sont privés : vous seul y avez accès, et vous pouvez les supprimer à tout moment.
+  </p>
+</section>
 {% endblock %}

@@ -6,7 +6,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <a href="{% url 'dreams:list' %}" class="text-decoration-none"><i class="bi bi-arrow-left"></i> Mes rêves</a>
-  <a href="{% url 'dreams:delete' dream.pk %}" class="btn btn-outline-danger btn-sm"
+  <a href="{% url 'dreams:delete' dream.pk %}" class="btn btn-outline-danger btn-sm rounded-pill px-3"
      data-bs-toggle="modal" data-bs-target="#delete-modal">
     <i class="bi bi-trash" aria-hidden="true"></i> Supprimer
   </a>
@@ -14,14 +14,14 @@
 
 <div class="row g-4">
   <div class="col-lg-6">
-    <div class="card shadow-sm overflow-hidden">
+    <div class="dream-hero-image" style="--emo: {{ dream.emotion_style.hex }}">
       {% include "dreams/includes/dream_visual.html" with ratio="1x1" img_class="w-100" %}
     </div>
   </div>
 
   <div class="col-lg-6">
     <p class="text-secondary mb-1">{{ dream.created_at|date:"l j F Y · H:i" }}</p>
-    <h1 class="h3">{{ dream.title }}</h1>
+    <h1 class="h2">{{ dream.title }}</h1>
     <div class="d-flex flex-wrap gap-2 mb-4">
       {% include "dreams/includes/emotion_badge.html" %}
       {% include "dreams/includes/status_badge.html" %}
@@ -57,7 +57,7 @@
       </div>
     {% elif dream.is_processing %}
       {# Suivi en direct : le script interroge le serveur et recharge la page à la fin. #}
-      <div class="card card-body bg-body-tertiary mb-4" id="processing-panel"
+      <div class="card card-body mb-4" id="processing-panel"
            data-status-url="{% url 'dreams:status' dream.pk %}">
         <p class="mb-3" aria-live="polite">
           <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
@@ -66,7 +66,7 @@
         </p>
         <ol class="list-unstyled d-flex gap-3 mb-0 small">
           {% for step in progress_steps %}
-            <li class="{% if step.state == 'todo' %}text-secondary{% elif step.state == 'active' %}fw-semibold text-primary{% else %}text-success{% endif %}">
+            <li class="step-{{ step.state }}">
               {% if step.state == "done" %}<i class="bi bi-check-circle-fill" aria-hidden="true"></i>
               {% elif step.state == "active" %}<i class="bi bi-arrow-right-circle-fill" aria-hidden="true"></i>
               {% else %}<i class="bi bi-circle" aria-hidden="true"></i>{% endif %}
@@ -77,15 +77,15 @@
       </div>
     {% endif %}
 
-    <h2 class="h5">Récit du rêve</h2>
+    <h2 class="h6 text-uppercase text-secondary" style="letter-spacing: .06em;">Récit du rêve</h2>
     {% if dream.transcription %}
-      <blockquote class="border-start border-3 ps-3 text-body-secondary">{{ dream.transcription|linebreaksbr }}</blockquote>
+      <blockquote class="dream-quote" style="--emo: {{ dream.emotion_style.hex }}">{{ dream.transcription|linebreaksbr }}</blockquote>
     {% else %}
       <p class="text-secondary fst-italic">La transcription n'est pas encore disponible.</p>
     {% endif %}
 
     {% if dream.audio %}
-      <h2 class="h5 mt-4">Enregistrement</h2>
+      <h2 class="h6 text-uppercase text-secondary mt-4" style="letter-spacing: .06em;">Enregistrement</h2>
       <audio controls preload="none" class="w-100" src="{{ dream.audio.url }}">
         Votre navigateur ne peut pas lire cet enregistrement.
       </audio>
