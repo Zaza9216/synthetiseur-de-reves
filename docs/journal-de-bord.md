@@ -41,3 +41,9 @@ Ce journal alimente le rapport technique et la code review.
 ### Décision : statut de traitement sur le rêve
 - **Choix :** un champ `status` suit chaque étape (en attente → transcription → analyse → génération → terminé / échec), complété par un `error_message`.
 - **Pourquoi :** les appels aux API d'IA prennent plusieurs secondes et peuvent échouer. L'interface doit toujours pouvoir dire où en est le traitement, ce qui prépare le traitement en arrière-plan du Sprint 2.
+
+### Décision : supprimer les fichiers avec un signal `post_delete`
+- **Constat :** Django supprime la ligne en base, mais **jamais les fichiers** liés (`FileField`). Les enregistrements vocaux, qui sont des données personnelles, resteraient sur le disque.
+- **Choix :** un signal `post_delete` sur `Dream` plutôt qu'une surcharge de `Dream.delete()`.
+- **Pourquoi :** `delete()` n'est **pas appelée** lors des suppressions en masse (`queryset.delete()`) ni lors de la cascade quand un compte est supprimé. Le signal, lui, est émis dans tous ces cas. Le test `test_deleting_user_account_removes_dream_files` le vérifie.
+- **Robustesse :** une erreur de stockage est journalisée, mais ne bloque pas la suppression.

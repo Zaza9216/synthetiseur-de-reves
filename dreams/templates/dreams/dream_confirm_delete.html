@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Supprimer un rêve · Synthétiseur de rêves{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8 col-lg-6">
+    <div class="card border-danger shadow-sm">
+      <div class="card-body p-4">
+        <h1 class="h4"><i class="bi bi-trash text-danger" aria-hidden="true"></i> Supprimer ce rêve ?</h1>
+        <p class="mb-1"><strong>{{ dream.title }}</strong></p>
+        <p class="text-secondary small">{{ dream.created_at|date:"j F Y · H:i" }}</p>
+        <p>Le récit, l'enregistrement audio et l'image seront <strong>supprimés définitivement</strong>.</p>
+        <form method="post" class="d-flex gap-2">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+          <a href="{% url 'dreams:detail' dream.pk %}" class="btn btn-secondary">Annuler</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
