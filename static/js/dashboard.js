@@ -14,6 +14,11 @@
 
   const timeline = JSON.parse(source.textContent);
 
+  // Couleurs lisibles sur le thème sombre « nuit étoilée ».
+  Chart.defaults.color = "#c9c4e8";
+  Chart.defaults.borderColor = "rgba(255, 255, 255, 0.08)";
+  Chart.defaults.font.family = "Inter, system-ui, sans-serif";
+
   new Chart(canvas, {
     type: "bar",
     data: {

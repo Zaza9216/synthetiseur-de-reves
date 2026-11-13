@@ -5,8 +5,8 @@
 
 {% block content %}
 <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-  <h1 class="h3 mb-0">Mes rêves</h1>
-  <a href="{% url 'dreams:create' %}" class="btn btn-primary"><i class="bi bi-mic"></i> Raconter un rêve</a>
+  <h1 class="h2 mb-0">Mes rêves</h1>
+  <a href="{% url 'dreams:create' %}" class="btn btn-primary rounded-pill px-4"><i class="bi bi-mic"></i> Raconter un rêve</a>
 </div>
 
 {% if not has_any_dream %}
@@ -18,7 +18,7 @@
 {% else %}
 
   {# --- Filtres ---------------------------------------------------------------- #}
-  <form method="get" class="card card-body shadow-sm mb-4" aria-label="Filtrer mes rêves">
+  <form method="get" class="card card-body mb-4" aria-label="Filtrer mes rêves">
     {% if filter_form.non_field_errors %}
       <div class="alert alert-danger py-2" role="alert">{{ filter_form.non_field_errors|join:" " }}</div>
     {% endif %}
@@ -51,7 +51,7 @@
     <div class="d-flex flex-wrap gap-1 mt-2 small">
       <span class="text-secondary me-1">Période rapide :</span>
       {% for label, start in presets %}
-        <a class="badge rounded-pill text-bg-light border text-decoration-none"
+        <a class="badge rounded-pill preset-pill text-decoration-none"
            href="?start={{ start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}{% if emotion_filter %}&amp;emotion={{ emotion_filter }}{% endif %}">{{ label }}</a>
       {% endfor %}
     </div>
@@ -64,22 +64,22 @@
   </p>
   <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">
-      <div class="card card-body shadow-sm h-100">
+      <div class="card card-body h-100">
         <div class="small text-secondary">Rêves racontés</div>
         <div class="fs-3 fw-bold" data-testid="stat-total">{{ stats.total }}</div>
       </div>
     </div>
     <div class="col-6 col-lg-3">
-      <div class="card card-body shadow-sm h-100">
+      <div class="card card-body h-100">
         <div class="small text-secondary">Fréquence</div>
         <div class="fs-3 fw-bold">{{ stats.per_week|floatformat:1 }} <span class="fs-6 fw-normal text-secondary">/ semaine</span></div>
       </div>
     </div>
     <div class="col-12 col-lg-6">
-      <div class="card card-body shadow-sm h-100">
+      <div class="card card-body h-100">
         <div class="small text-secondary">Émotion dominante</div>
         {% if stats.dominant %}
-          <div class="fs-4 fw-bold text-{{ stats.dominant.color }}" data-testid="stat-dominant">
+          <div class="fs-4 fw-bold emo-text" style="--emo: {{ stats.dominant.hex }}" data-testid="stat-dominant">
             <i class="bi {{ stats.dominant.icon }}" aria-hidden="true"></i> {{ stats.dominant.label }}
             <span class="fs-6 fw-normal text-secondary">· {{ stats.dominant.percent }} % des rêves analysés</span>
           </div>
@@ -94,7 +94,7 @@
   {% if stats.analysed %}
     <div class="row g-3 mb-4">
       <div class="col-lg-8">
-        <div class="card card-body shadow-sm h-100">
+        <div class="card card-body h-100">
           <h3 class="h6">Évolution de mes émotions (par {{ stats.timeline.granularity }})</h3>
           <div style="position: relative; height: 260px;">
             <canvas id="timeline-chart" role="img"
@@ -103,18 +103,18 @@
         </div>
       </div>
       <div class="col-lg-4">
-        <div class="card card-body shadow-sm h-100">
+        <div class="card card-body h-100">
           <h3 class="h6">Répartition des émotions</h3>
           <ul class="list-unstyled mb-0" data-testid="distribution">
             {% for share in stats.distribution %}
               <li class="mb-2">
                 <div class="d-flex justify-content-between small">
-                  <span><i class="bi {{ share.icon }} text-{{ share.color }}" aria-hidden="true"></i> {{ share.label }}</span>
+                  <span><i class="bi {{ share.icon }} emo-text" style="--emo: {{ share.hex }}" aria-hidden="true"></i> {{ share.label }}</span>
                   <span class="text-secondary">{{ share.count }} · {{ share.percent }} %</span>
                 </div>
                 <div class="progress" style="height: 6px;" role="progressbar" aria-label="{{ share.label }}"
                      aria-valuenow="{{ share.percent }}" aria-valuemin="0" aria-valuemax="100">
-                  <div class="progress-bar" style="width: {{ share.percent }}%; background-color: {{ share.hex }};"></div>
+                  <div class="progress-bar progress-bar-flat" style="width: {{ share.percent }}%; background-color: {{ share.hex }};"></div>
                 </div>
               </li>
             {% endfor %}
@@ -137,7 +137,7 @@
     <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
       {% for dream in dreams %}
         <div class="col">
-          <a href="{% url 'dreams:detail' dream.pk %}" class="card h-100 shadow-sm text-decoration-none text-reset">
+          <a href="{% url 'dreams:detail' dream.pk %}" class="card dream-card h-100 text-decoration-none text-reset" style="--emo: {{ dream.emotion_style.hex }}">
             {% include "dreams/includes/dream_visual.html" %}
             <div class="card-body">
               <p class="small text-secondary mb-1">{{ dream.created_at|date:"j F Y · H:i" }}</p>

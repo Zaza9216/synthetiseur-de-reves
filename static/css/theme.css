@@ -1,0 +1,418 @@
+/* ==========================================================================
+   Thème « Nuit étoilée » — Synthétiseur de rêves
+   Surcouche de Bootstrap 5.3 en mode sombre (data-bs-theme="dark").
+   ========================================================================== */
+
+:root,
+[data-bs-theme="dark"] {
+  /* Palette */
+  --night-950: #07061a;
+  --night-900: #0d0b26;
+  --night-800: #1a1640;
+  --night-700: #2a2266;
+  --lavender: #b8a9ff;
+  --lavender-strong: #9d8bff;
+  --moon: #f4e9c7;
+  --glass-bg: rgba(255, 255, 255, 0.055);
+  --glass-bg-strong: rgba(255, 255, 255, 0.09);
+  --glass-border: rgba(255, 255, 255, 0.11);
+  --text-soft: #c9c4e8;
+  --text-muted: #9a94c4;
+
+  /* Typographie */
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Surcharge des variables Bootstrap */
+  --bs-body-bg: var(--night-950);
+  --bs-body-color: #ece9ff;
+  --bs-body-font-family: var(--font-body);
+  --bs-secondary-color: var(--text-muted);
+  --bs-tertiary-bg: var(--glass-bg);
+  --bs-border-color: var(--glass-border);
+  --bs-link-color: var(--lavender);
+  --bs-link-color-rgb: 184, 169, 255;
+  --bs-link-hover-color: #ffffff;
+  --bs-link-hover-color-rgb: 255, 255, 255;
+  --bs-primary: var(--lavender-strong);
+  --bs-primary-rgb: 157, 139, 255;
+  --bs-border-radius: 0.75rem;
+  --bs-border-radius-lg: 1.1rem;
+  --bs-card-bg: transparent;
+  --bs-emphasis-color: #ffffff;
+}
+
+/* --- Ciel ------------------------------------------------------------------ */
+html {
+  background-color: var(--night-950);
+}
+body {
+  background:
+    radial-gradient(ellipse 80% 60% at 75% -10%, rgba(120, 90, 255, 0.28), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 0% 100%, rgba(60, 120, 255, 0.16), transparent 60%),
+    linear-gradient(180deg, var(--night-900) 0%, var(--night-950) 55%, #050412 100%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Étoiles : deux couches de points, légèrement scintillantes. */
+.sky {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.sky::before,
+.sky::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+}
+.sky::before {
+  background-image:
+    radial-gradient(1px 1px at 20px 30px, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(1px 1px at 140px 80px, rgba(255, 255, 255, 0.55), transparent 60%),
+    radial-gradient(1.5px 1.5px at 230px 160px, rgba(255, 255, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 90px 210px, rgba(220, 210, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 300px 40px, rgba(255, 255, 255, 0.5), transparent 60%);
+  background-size: 340px 260px;
+  opacity: 0.55;
+}
+.sky::after {
+  background-image:
+    radial-gradient(1.5px 1.5px at 60px 120px, rgba(255, 248, 220, 0.9), transparent 60%),
+    radial-gradient(1px 1px at 410px 260px, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(2px 2px at 520px 60px, rgba(200, 190, 255, 0.85), transparent 60%);
+  background-size: 620px 420px;
+  animation: twinkle 6s ease-in-out infinite alternate;
+}
+@keyframes twinkle {
+  from { opacity: 0.25; }
+  to { opacity: 0.85; }
+}
+
+main,
+.navbar,
+footer {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Typographie ------------------------------------------------------------- */
+h1, h2, .display-4, .display-5, .display-6, .font-display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+h3, h4, h5, h6, .h5, .h6 {
+  font-family: var(--font-body);
+  font-weight: 600;
+}
+.text-secondary,
+.form-text {
+  color: var(--text-muted) !important;
+}
+.text-gradient {
+  background: linear-gradient(90deg, #ffffff 0%, var(--lavender) 55%, #8fd3ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* --- Barre de navigation ------------------------------------------------------- */
+.navbar-night {
+  background: rgba(10, 8, 32, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--glass-border);
+}
+.navbar-night .navbar-brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+.navbar-night .navbar-brand .bi {
+  color: var(--moon);
+  filter: drop-shadow(0 0 6px rgba(244, 233, 199, 0.6));
+}
+.navbar-night .nav-link {
+  color: var(--text-soft);
+}
+.navbar-night .nav-link:hover,
+.navbar-night .nav-link:focus-visible {
+  color: #ffffff;
+}
+
+/* --- Cartes « verre dépoli » -------------------------------------------------- */
+.card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25) !important;
+}
+.dream-card {
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.dream-card:hover,
+.dream-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--emo, var(--lavender)) 55%, transparent);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35), 0 0 24px color-mix(in srgb, var(--emo, var(--lavender)) 25%, transparent) !important;
+}
+.dream-card img,
+.dream-card .dream-placeholder {
+  transition: transform 0.5s ease;
+}
+.dream-card:hover img {
+  transform: scale(1.04);
+}
+
+/* Visuel de remplacement quand le rêve n'a pas (encore) d'image. */
+.dream-placeholder {
+  background:
+    radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--emo, var(--lavender)) 45%, transparent), transparent 55%),
+    radial-gradient(circle at 75% 80%, rgba(80, 60, 200, 0.35), transparent 60%),
+    linear-gradient(160deg, var(--night-800), var(--night-950));
+}
+.dream-placeholder .bi {
+  color: var(--emo, var(--lavender));
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--emo, var(--lavender)) 60%, transparent));
+}
+
+/* --- Badges d'émotion ----------------------------------------------------------- */
+.emo-badge {
+  background: color-mix(in srgb, var(--emo) 16%, transparent);
+  color: var(--emo);
+  border: 1px solid color-mix(in srgb, var(--emo) 45%, transparent);
+  font-weight: 600;
+}
+.emo-text {
+  color: var(--emo);
+}
+.status-badge {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-soft);
+  border: 1px solid var(--glass-border);
+}
+
+/* --- Boutons ---------------------------------------------------------------------- */
+.btn-primary {
+  --bs-btn-color: #120f2e;
+  --bs-btn-bg: var(--lavender);
+  --bs-btn-border-color: var(--lavender);
+  --bs-btn-hover-color: #120f2e;
+  --bs-btn-hover-bg: #d4caff;
+  --bs-btn-hover-border-color: #d4caff;
+  --bs-btn-active-bg: #c7bbff;
+  --bs-btn-active-color: #120f2e;
+  --bs-btn-focus-shadow-rgb: 184, 169, 255;
+  --bs-btn-disabled-bg: var(--lavender);
+  --bs-btn-disabled-color: #120f2e;
+  font-weight: 600;
+  box-shadow: 0 0 22px rgba(184, 169, 255, 0.35);
+}
+.btn-dark {
+  --bs-btn-bg: var(--glass-bg-strong);
+  --bs-btn-border-color: var(--glass-border);
+  --bs-btn-hover-bg: rgba(255, 255, 255, 0.16);
+  --bs-btn-hover-border-color: var(--glass-border);
+}
+.btn-ghost {
+  --bs-btn-active-bg: rgba(184, 169, 255, 0.2);
+  --bs-btn-active-color: #ffffff;
+  --bs-btn-active-border-color: var(--lavender);
+  --bs-btn-color: var(--text-soft);
+  --bs-btn-border-color: var(--glass-border);
+  --bs-btn-hover-color: #ffffff;
+  --bs-btn-hover-bg: var(--glass-bg-strong);
+  --bs-btn-hover-border-color: var(--glass-border);
+}
+
+/* --- Formulaires ------------------------------------------------------------------- */
+.form-control,
+.form-select {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: var(--glass-border);
+  color: #ffffff;
+}
+.form-control:focus,
+.form-select:focus {
+  background-color: rgba(255, 255, 255, 0.09);
+  border-color: var(--lavender);
+  box-shadow: 0 0 0 0.2rem rgba(184, 169, 255, 0.25);
+  color: #ffffff;
+}
+.form-control::placeholder {
+  color: var(--text-muted);
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+}
+.preset-pill {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--text-soft);
+}
+.preset-pill:hover {
+  background: var(--glass-bg-strong);
+  color: #ffffff;
+}
+
+/* --- Accueil -------------------------------------------------------------------------- */
+.hero {
+  padding: clamp(3rem, 8vw, 6rem) 0 clamp(2rem, 5vw, 4rem);
+}
+.hero-moon {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  margin: 0 auto 1.5rem;
+  background: radial-gradient(circle at 35% 35%, #fffbea, var(--moon) 45%, #d8c28a 100%);
+  box-shadow: 0 0 40px rgba(244, 233, 199, 0.55), 0 0 120px rgba(184, 169, 255, 0.35);
+}
+.step-card {
+  text-align: center;
+  padding: 1.75rem 1.25rem;
+}
+.step-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--lavender);
+  background: rgba(184, 169, 255, 0.12);
+  border: 1px solid rgba(184, 169, 255, 0.35);
+  margin-bottom: 1rem;
+}
+
+/* --- Enregistreur -------------------------------------------------------------------- */
+.record-button {
+  width: 132px;
+  height: 132px;
+  border-radius: 50%;
+  border: none;
+  font-size: 3rem;
+  color: #ffffff;
+  background: radial-gradient(circle at 35% 30%, #ff8fb1, #e0457b 55%, #9b1f5a 100%);
+  box-shadow: 0 0 0 10px rgba(224, 69, 123, 0.12), 0 0 45px rgba(224, 69, 123, 0.55);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.record-button:hover,
+.record-button:focus-visible {
+  transform: scale(1.05);
+  outline: none;
+  box-shadow: 0 0 0 14px rgba(224, 69, 123, 0.16), 0 0 60px rgba(224, 69, 123, 0.7);
+}
+.record-button.is-recording {
+  background: radial-gradient(circle at 35% 30%, #6b6290, #2e275c 70%);
+  animation: pulse 1.6s ease-out infinite;
+}
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(224, 69, 123, 0.55), 0 0 40px rgba(224, 69, 123, 0.4); }
+  100% { box-shadow: 0 0 0 28px rgba(224, 69, 123, 0), 0 0 40px rgba(224, 69, 123, 0.4); }
+}
+.waveform {
+  width: 100%;
+  max-width: 460px;
+  height: 72px;
+  display: block;
+  margin: 1.25rem auto 0;
+}
+.timer {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.nav-tabs {
+  --bs-nav-tabs-border-color: var(--glass-border);
+  --bs-nav-tabs-link-active-bg: var(--glass-bg);
+  --bs-nav-tabs-link-active-color: #ffffff;
+  --bs-nav-tabs-link-active-border-color: var(--glass-border) var(--glass-border) transparent;
+  --bs-nav-link-color: var(--text-soft);
+  --bs-nav-link-hover-color: #ffffff;
+}
+
+/* --- Page d'un rêve ------------------------------------------------------------------- */
+.dream-hero-image {
+  border-radius: var(--bs-border-radius-lg);
+  overflow: hidden;
+  box-shadow: 0 0 60px color-mix(in srgb, var(--emo, var(--lavender)) 30%, transparent), 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+.dream-quote {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: var(--text-soft);
+  border-left: 3px solid var(--emo, var(--lavender));
+  padding-left: 1.1rem;
+}
+.progress {
+  --bs-progress-bg: rgba(255, 255, 255, 0.08);
+}
+.progress-bar {
+  background: linear-gradient(90deg, var(--lavender-strong), #8fd3ff);
+}
+.progress-bar-flat {
+  background-image: none;
+}
+.step-done { color: #86efac; }
+.step-active { color: var(--lavender); font-weight: 600; }
+.step-todo { color: var(--text-muted); }
+
+/* --- Tableaux, listes, alertes ----------------------------------------------------------- */
+.table {
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-border-color: var(--glass-border);
+}
+.table thead th {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.list-group {
+  --bs-list-group-bg: var(--glass-bg);
+  --bs-list-group-border-color: var(--glass-border);
+}
+.alert {
+  backdrop-filter: blur(8px);
+}
+
+/* --- Pagination --------------------------------------------------------------------------- */
+.pagination {
+  --bs-pagination-bg: var(--glass-bg);
+  --bs-pagination-border-color: var(--glass-border);
+  --bs-pagination-color: var(--lavender);
+  --bs-pagination-hover-bg: var(--glass-bg-strong);
+  --bs-pagination-disabled-bg: var(--glass-bg);
+  --bs-pagination-disabled-color: var(--text-soft);
+}
+
+/* --- Pied de page --------------------------------------------------------------------------- */
+footer {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* --- Accessibilité : focus visible et mouvements réduits ------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--lavender);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
