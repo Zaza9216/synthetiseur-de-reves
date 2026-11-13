@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Nouveau rêve · Synthétiseur de rêves{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <a href="{% url 'dreams:list' %}" class="text-decoration-none"><i class="bi bi-arrow-left"></i> Mes rêves</a>
+    <h1 class="h3 mt-2">Raconter un rêve</h1>
+    <p class="text-secondary">
+      Racontez votre rêve à voix haute, comme vous le feriez à un proche : il sera transcrit,
+      son émotion analysée et une image l'illustrera.
+      <span class="d-block small mt-1">
+        Durée maximale : {{ max_seconds|floatformat:0 }} secondes · Rêves restants aujourd'hui : <strong>{{ dreams_left }}</strong>
+      </span>
+    </p>
+
+    {% if dreams_left == 0 %}
+      <div class="alert alert-warning" role="alert">
+        Vous avez atteint la limite de rêves pour aujourd'hui. Revenez demain !
+      </div>
+    {% else %}
+      {# Messages du script (erreurs, progression), annoncés aux lecteurs d'écran. #}
+      <div id="recorder-alert" class="alert d-none" role="alert" aria-live="assertive"></div>
+
+      {% if form.errors %}
+        <div class="alert alert-danger" role="alert">
+          {% for field, errors in form.errors.items %}{% for error in errors %}<div>{{ error }}</div>{% endfor %}{% endfor %}
+        </div>
+      {% endif %}
+
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="tab-record" data-bs-toggle="tab" data-bs-target="#pane-record"
+                  type="button" role="tab" aria-controls="pane-record" aria-selected="true">
+            <i class="bi bi-mic"></i> Enregistrer
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="tab-upload" data-bs-toggle="tab" data-bs-target="#pane-upload"
+                  type="button" role="tab" aria-controls="pane-upload" aria-selected="false">
+            <i class="bi bi-upload"></i> Importer un fichier
+          </button>
+        </li>
+      </ul>
+
+      <div class="tab-content card card-body border-top-0 rounded-top-0 shadow-sm">
+        {# --- Enregistrement au micro --- #}
+        <div class="tab-pane fade show active text-center py-4" id="pane-record" role="tabpanel" aria-labelledby="tab-record">
+          <div id="recorder" data-max-seconds="{{ max_seconds }}" data-upload-url="{% url 'dreams:create' %}">
+            <p id="recorder-unsupported" class="text-secondary d-none">
+              Votre navigateur ne permet pas d'enregistrer. Utilisez l'onglet « Importer un fichier ».
+            </p>
+
+            <div id="recorder-controls">
+              <div class="display-6 font-monospace mb-3" id="recorder-timer" aria-live="off">00:00</div>
+              <div class="progress mb-4 mx-auto" style="height: 6px; max-width: 320px;" aria-hidden="true">
+                <div class="progress-bar" id="recorder-progress" style="width: 0%"></div>
+              </div>
+
+              <button type="button" class="btn btn-danger btn-lg rounded-pill px-4" id="btn-start">
+                <i class="bi bi-record-circle"></i> Commencer l'enregistrement
+              </button>
+              <button type="button" class="btn btn-dark btn-lg rounded-pill px-4 d-none" id="btn-stop">
+                <i class="bi bi-stop-fill"></i> Arrêter
+              </button>
+
+              <div id="recorder-review" class="d-none">
+                <audio id="recorder-preview" controls class="w-100 mb-3"></audio>
+                <div class="d-flex justify-content-center gap-2">
+                  <button type="button" class="btn btn-outline-secondary" id="btn-restart">
+                    <i class="bi bi-arrow-counterclockwise"></i> Recommencer
+                  </button>
+                  <button type="button" class="btn btn-primary" id="btn-send">
+                    <i class="bi bi-send"></i> Envoyer mon rêve
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# --- Import d'un fichier (fonctionne aussi sans JavaScript) --- #}
+        <div class="tab-pane fade py-3" id="pane-upload" role="tabpanel" aria-labelledby="tab-upload">
+          <form method="post" enctype="multipart/form-data" id="upload-form" novalidate>
+            {% csrf_token %}
+            <label for="{{ form.audio.id_for_label }}" class="form-label">Fichier audio</label>
+            <input type="file" name="{{ form.audio.html_name }}" id="{{ form.audio.id_for_label }}"
+                   class="form-control" accept="audio/*,.webm,.m4a,.mp4" required
+                   aria-describedby="upload-help">
+            <div class="form-text" id="upload-help">
+              Formats : mp3, wav, m4a, webm, ogg, flac · {{ max_mb }} Mo maximum.
+            </div>
+            <input type="hidden" name="{{ form.audio_duration.html_name }}" id="upload-duration">
+            <button type="submit" class="btn btn-primary mt-3" id="btn-upload">
+              <i class="bi bi-send"></i> Envoyer mon rêve
+            </button>
+          </form>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  {% if dreams_left > 0 %}<script src="{% static 'js/recorder.js' %}" defer></script>{% endif %}
+{% endblock %}
