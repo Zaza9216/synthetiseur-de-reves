@@ -127,3 +127,23 @@ Ce journal alimente le rapport technique et la code review.
 - **Sécurité :** l'injection est sans effet. Le récit est passé comme **donnée** dans le message utilisateur, la consigne système demande d'ignorer les instructions qu'il contient, et surtout le **schéma strict** rend impossible toute réponse hors des 6 émotions.
 - **Limite connue :** l'IA renvoie souvent une confiance de 0,90. Le score reflète mal l'incertitude réelle, c'est une piste d'amélioration (logprobs).
 - **Ajustement du lexique :** les débuts de mots trop courts (« cri », « vol », « hai ») ont été allongés pour éviter des faux positifs (« cristal », « voleur », « haie »). Un test le vérifie.
+
+### Décision : image non bloquante et plafond budgétaire
+- **Image facultative :** si la génération échoue (panne, délai dépassé, refus de la modération), le rêve est **terminé quand même**, avec sa transcription et son émotion. Un message explique le problème et un bouton « Régénérer l'image » relance **seulement** cette étape.
+- **Plafond mensuel :** le total des coûts estimés (`ApiCall`) du mois est comparé à `AI_MONTHLY_BUDGET_USD` (15 $ par défaut, sous les 20 € du sujet). Une alerte est journalisée à 80 %. À 100 %, les nouveaux rêves sont refusés avec un message clair et aucune image n'est plus générée.
+- **WebP compressé (qualité 80) :** environ 55 Ko par image au lieu de plusieurs centaines de Ko en PNG, d'où des pages plus rapides et moins de stockage.
+
+### 🐞 Risque évité : des tests qui appelaient la vraie API
+- **Constat :** une fois l'étape émotion branchée, le test du pipeline complet appelait réellement `api.openai.com` avec la fausse clé de test, puis retombait sur le lexique après un refus 401. Les tests passaient, mais **dépendaient du réseau** et étaient lents.
+- **Correction :** la configuration de test ne fournit **aucune clé**. `get_openai_client()` lève donc une erreur **avant** toute requête. Les tests des services injectent un client simulé.
+
+### 📊 Mesure réelle de bout en bout (pipeline complet)
+| Étape | Modèle | Latence | Coût |
+|---|---|---|---|
+| Transcription | gpt-4o-transcribe | 1,2 s | 0,0009 $ |
+| Émotion | gpt-4o-mini | 0,9 s | 0,00005 $ |
+| Image | gpt-image-1-mini (medium, WebP) | 10,2 s | 0,011 $ |
+| **Total** | | **12,3 s** | **≈ 0,012 $** |
+
+- **Goulot d'étranglement :** la génération d'image représente 83 % du temps. D'où le traitement en arrière-plan avec une page de suivi.
+- **Projection budgétaire :** avec 10 rêves par jour (hypothèse de pré-production), ≈ 0,12 $ par jour, soit ≈ 3,60 $ par mois, très en dessous du plafond.

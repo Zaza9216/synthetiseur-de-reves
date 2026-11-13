@@ -20,6 +20,7 @@ from django.views import View
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DeleteView, DetailView, ListView
 
+from dreams.ai.budget import BUDGET_EXCEEDED_MESSAGE, is_budget_exceeded
 from dreams.forms import DreamCreateForm
 from dreams.models import Dream, Status
 from dreams.pipeline import enqueue_dream, retry_dream
@@ -116,6 +117,12 @@ class DreamCreateView(LoginRequiredMixin, View):
             if _wants_json(request):
                 return JsonResponse({"errors": [error]}, status=429)
             messages.warning(request, error)
+            return redirect("dreams:list")
+
+        if is_budget_exceeded():
+            if _wants_json(request):
+                return JsonResponse({"errors": [BUDGET_EXCEEDED_MESSAGE]}, status=503)
+            messages.warning(request, BUDGET_EXCEEDED_MESSAGE)
             return redirect("dreams:list")
 
         form = DreamCreateForm(request.POST, request.FILES)

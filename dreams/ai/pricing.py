@@ -59,3 +59,28 @@ def chat_cost(model: str, input_tokens: int, output_tokens: int) -> Decimal:
     )
     cost = (input_tokens * input_rate + output_tokens * output_rate) / Decimal(1_000_000)
     return cost.quantize(Decimal("0.000001"))
+
+
+# Génération d'images 1024×1024 : prix par image selon la qualité.
+IMAGE_USD_PER_IMAGE: dict[str, dict[str, Decimal]] = {
+    "gpt-image-1-mini": {
+        "low": Decimal("0.005"),
+        "medium": Decimal("0.011"),
+        "high": Decimal("0.036"),
+    },
+    "gpt-image-1": {"low": Decimal("0.011"), "medium": Decimal("0.042"), "high": Decimal("0.167")},
+}
+
+
+def image_cost(model: str, quality: str) -> Decimal:
+    """Estime le coût de génération d'une image 1024×1024.
+
+    Args:
+        model: Nom du modèle d'image.
+        quality: Qualité demandée (``low``, ``medium`` ou ``high``).
+
+    Returns:
+        Le coût estimé en dollars US (tarif le plus élevé connu si le
+        modèle ou la qualité sont inconnus, par prudence).
+    """
+    return IMAGE_USD_PER_IMAGE.get(model, {}).get(quality, Decimal("0.167"))

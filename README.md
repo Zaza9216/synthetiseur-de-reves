@@ -71,6 +71,8 @@ Docker Compose lance l'application et une base PostgreSQL. L'application est dis
 | `TRANSCRIPTION_MODEL` | Modèle de transcription | `gpt-4o-transcribe` |
 | `DREAM_PROCESSING_MODE` | `thread` (arrière-plan), `sync` ou `off` | `thread` |
 | `DREAM_DAILY_LIMIT` | Rêves maximum par utilisateur et par jour | `10` |
+| `IMAGE_MODEL` / `IMAGE_QUALITY` | Modèle et qualité des images | `gpt-image-1-mini` / `medium` |
+| `AI_MONTHLY_BUDGET_USD` | Plafond de dépenses IA mensuel ($) | `15` |
 | `OPENAI_TIMEOUT` / `OPENAI_MAX_RETRIES` | Délai max par appel (s) / nouvelles tentatives | `60` / `2` |
 
 Le fichier `.env` n'est **jamais** commité.

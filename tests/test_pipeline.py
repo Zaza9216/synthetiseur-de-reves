@@ -6,6 +6,7 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
+from django.core.files.base import ContentFile
 from django.test import Client
 from django.urls import reverse
 from django.utils import timezone
@@ -55,7 +56,9 @@ def make_stalled(dream: Dream, status: Status = Status.TRANSCRIPTION) -> None:
 
 
 def test_process_dream_runs_steps_and_completes(pending_dream: Dream, fake_transcribe: Any) -> None:
-    process_dream(pending_dream.pk)
+    image = (ContentFile(b"webp", name="reve.webp"), "prompt")
+    with patch("dreams.pipeline.generate_dream_image", return_value=image):
+        process_dream(pending_dream.pk)
 
     pending_dream.refresh_from_db()
     assert pending_dream.status == Status.TERMINE
@@ -261,6 +264,7 @@ def test_retry_stalled_dream_requeues_it(pending_dream: Dream) -> None:
 
 def test_retry_finished_dream_is_refused(user: Any, make_dream: MakeDream) -> None:
     dream = make_dream(user, status=Status.TERMINE)
+    dream.image.save("image.webp", ContentFile(b"webp"), save=True)
 
     with patch("dreams.pipeline.enqueue_dream") as enqueue:
         assert retry_dream(dream) is False
