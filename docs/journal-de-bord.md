@@ -162,3 +162,14 @@ Ce journal alimente le rapport technique et la code review.
 
 ### Outil : données de démonstration
 - La commande `seed_demo_dreams` crée un utilisateur et des rêves réalistes répartis sur N semaines, **sans appel d'API** (coût nul). Elle sert pour la démo, la vidéo et le test de charge.
+
+### Décision : monitoring intégré plutôt qu'une pile externe
+- **Choix :** page `/supervision/` réservée aux administrateurs, calculée à partir des tables `Dream` et `ApiCall`, plus des logs JSON et Sentry en option.
+- **Pourquoi :** une pile Prometheus + Grafana demanderait deux services de plus à héberger, ce qui est disproportionné pour ce projet et impossible en offre gratuite. Le journal `ApiCall`, créé dès le Sprint 2, contient déjà toutes les données utiles.
+- **Métriques clés suivies :**
+  - **Fiabilité :** taux de succès des rêves, échecs par service, taux de repli du lexique ;
+  - **Performance :** durée de traitement p50/p95, latence p50/p95 par API (les échecs sont exclus pour ne pas fausser la latence), requêtes HTTP lentes ;
+  - **Coût :** dépense par service et consommation du budget mensuel (vert, puis orange à 80 %, puis rouge).
+- **Pourquoi p95 et pas seulement la moyenne :** la moyenne masque les cas lents que vivent réellement certains utilisateurs. Le p95 indique le temps sous lequel passent 95 % des traitements.
+- **Sonde de santé avant `ALLOWED_HOSTS` :** la sonde de l'hébergeur appelle le service par son adresse interne. Sans le middleware dédié, Django répondrait 400 et Render croirait le service en panne.
+- **RGPD :** Sentry est configuré sans données personnelles (`send_default_pii=False`). Les logs contiennent des identifiants techniques (numéros de rêve et d'utilisateur), jamais le contenu des rêves.

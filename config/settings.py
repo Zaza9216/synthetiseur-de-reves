@@ -53,6 +53,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "core.middleware.HealthCheckMiddleware",
+    "core.middleware.RequestTimingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -146,17 +148,37 @@ DREAM_PROCESSING_MODE = env("DREAM_PROCESSING_MODE", default="thread")
 DREAM_PROCESSING_WORKERS = env.int("DREAM_PROCESSING_WORKERS", default=2)
 DREAM_STALLED_MINUTES = env.int("DREAM_STALLED_MINUTES", default=10)
 
+# --- Supervision -------------------------------------------------------------------
+# Version déployée : Render fournit le commit Git dans RENDER_GIT_COMMIT.
+APP_VERSION = env("RENDER_GIT_COMMIT", default="dev")[:7]
+# Au-delà de cette durée (ms), une requête est journalisée comme lente.
+SLOW_REQUEST_MS = env.int("SLOW_REQUEST_MS", default=1000)
+
+# Suivi des erreurs (facultatif) : actif seulement si SENTRY_DSN est défini.
+SENTRY_DSN = env("SENTRY_DSN", default="")
+if SENTRY_DSN:
+    import sentry_sdk
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        release=APP_VERSION,
+        environment="production" if not DEBUG else "development",
+        traces_sample_rate=env.float("SENTRY_TRACES_SAMPLE_RATE", default=0.1),
+        send_default_pii=False,  # RGPD : ni IP, ni cookies, ni données utilisateur
+    )
+
 # --- Logs ------------------------------------------------------------------------
+# "text" (lisible, en local) ou "json" (une ligne JSON par événement, en production).
+LOG_FORMAT = env("LOG_FORMAT", default="text")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
     "formatters": {
-        "standard": {
-            "format": "%(asctime)s %(levelname)s [%(name)s] %(message)s",
-        },
+        "text": {"format": "%(asctime)s %(levelname)s [%(name)s] %(message)s"},
+        "json": {"()": "core.logging.JsonFormatter"},
     },
     "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "standard"},
+        "console": {"class": "logging.StreamHandler", "formatter": LOG_FORMAT},
     },
     "root": {"handlers": ["console"], "level": env("LOG_LEVEL")},
 }
