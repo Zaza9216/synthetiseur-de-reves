@@ -1,0 +1,11 @@
+{# Image du rêve, ou visuel de remplacement coloré selon l'émotion. Attend `dream` et `ratio`. #}
+{% if dream.image %}
+  <img src="{{ dream.image.url }}" class="{{ img_class|default:'card-img-top' }} object-fit-cover"
+       alt="Illustration générée du rêve : {{ dream.title }}" loading="lazy">
+{% else %}
+  <div class="ratio ratio-{{ ratio|default:'4x3' }} bg-{{ dream.emotion_style.color }} bg-opacity-25 {{ img_class|default:'card-img-top' }}">
+    <div class="d-flex align-items-center justify-content-center">
+      <i class="bi {{ dream.emotion_style.icon }} display-4 text-{{ dream.emotion_style.color }}" aria-hidden="true"></i>
+    </div>
+  </div>
+{% endif %}

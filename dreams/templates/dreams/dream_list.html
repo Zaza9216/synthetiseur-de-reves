@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Mes rêves · Synthétiseur de rêves{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1 class="h3 mb-0">Mes rêves</h1>
+  {% if page_obj %}<span class="text-secondary">{{ paginator.count }} rêve{{ paginator.count|pluralize }}</span>{% endif %}
+</div>
+
+{% if dreams %}
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+    {% for dream in dreams %}
+      <div class="col">
+        <a href="{% url 'dreams:detail' dream.pk %}" class="card h-100 shadow-sm text-decoration-none text-reset">
+          {% include "dreams/includes/dream_visual.html" %}
+          <div class="card-body">
+            <p class="small text-secondary mb-1">{{ dream.created_at|date:"j F Y · H:i" }}</p>
+            <h2 class="h6 card-title">{{ dream.title }}</h2>
+            <div class="d-flex flex-wrap gap-1">
+              {% include "dreams/includes/emotion_badge.html" %}
+              {% include "dreams/includes/status_badge.html" %}
+            </div>
+          </div>
+        </a>
+      </div>
+    {% endfor %}
+  </div>
+
+  {% if is_paginated %}
+    <nav class="mt-4" aria-label="Pagination des rêves">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a></li>
+        {% endif %}
+        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} / {{ paginator.num_pages }}</span></li>
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  {% endif %}
+{% else %}
+  <div class="text-center py-5 text-secondary">
+    <i class="bi bi-moon display-1" aria-hidden="true"></i>
+    <p class="lead mt-3">Vous n'avez encore raconté aucun rêve.</p>
+  </div>
+{% endif %}
+{% endblock %}

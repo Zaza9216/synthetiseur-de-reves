@@ -1,0 +1,8 @@
+{# Badge de statut, affiché seulement si le traitement n'est pas terminé. Attend `dream`. #}
+{% if dream.status == "echec" %}
+  <span class="badge text-bg-danger"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> {{ dream.get_status_display }}</span>
+{% elif dream.is_processing %}
+  <span class="badge text-bg-light border">
+    <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> {{ dream.get_status_display }}
+  </span>
+{% endif %}

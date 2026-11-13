@@ -16,7 +16,7 @@
       </a>
       <div class="navbar-nav ms-auto align-items-center gap-2">
         {% if user.is_authenticated %}
-          {% block nav_links %}{% endblock %}
+          <a class="nav-link" href="{% url 'dreams:list' %}"><i class="bi bi-journal-text"></i> Mes rêves</a>
           <span class="navbar-text text-light d-none d-sm-inline">
             <i class="bi bi-person-circle"></i> {{ user.username }}
           </span>

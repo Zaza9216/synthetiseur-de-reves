@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     # Applications du projet
     "core",
     "accounts",
+    "dreams",
 ]
 
 MIDDLEWARE = [
@@ -92,7 +93,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # --- Authentification ----------------------------------------------------------
 AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "core:home"
+LOGIN_REDIRECT_URL = "dreams:list"
 LOGOUT_REDIRECT_URL = "core:home"
 
 AUTH_PASSWORD_VALIDATORS = [

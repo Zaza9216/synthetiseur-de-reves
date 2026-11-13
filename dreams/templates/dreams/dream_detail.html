@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}{{ dream.title }} · Synthétiseur de rêves{% endblock %}
+
+{% block content %}
+<nav aria-label="Fil d'Ariane" class="mb-3">
+  <a href="{% url 'dreams:list' %}" class="text-decoration-none"><i class="bi bi-arrow-left"></i> Mes rêves</a>
+</nav>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card shadow-sm overflow-hidden">
+      {% include "dreams/includes/dream_visual.html" with ratio="1x1" img_class="w-100" %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <p class="text-secondary mb-1">{{ dream.created_at|date:"l j F Y · H:i" }}</p>
+    <h1 class="h3">{{ dream.title }}</h1>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      {% include "dreams/includes/emotion_badge.html" %}
+      {% include "dreams/includes/status_badge.html" %}
+    </div>
+
+    {% if dream.status == "echec" and dream.error_message %}
+      <div class="alert alert-danger" role="alert">{{ dream.error_message }}</div>
+    {% endif %}
+
+    <h2 class="h5">Récit du rêve</h2>
+    {% if dream.transcription %}
+      <blockquote class="border-start border-3 ps-3 text-body-secondary">{{ dream.transcription|linebreaksbr }}</blockquote>
+    {% else %}
+      <p class="text-secondary fst-italic">La transcription n'est pas encore disponible.</p>
+    {% endif %}
+
+    {% if dream.audio %}
+      <h2 class="h5 mt-4">Enregistrement</h2>
+      <audio controls preload="none" class="w-100" src="{{ dream.audio.url }}">
+        Votre navigateur ne peut pas lire cet enregistrement.
+      </audio>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

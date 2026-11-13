@@ -9,7 +9,7 @@
   </p>
   <div class="mt-4 d-flex justify-content-center gap-2">
     {% if user.is_authenticated %}
-      <span class="text-secondary">Bonjour {{ user.username }} 👋</span>
+      <a href="{% url 'dreams:list' %}" class="btn btn-primary btn-lg">Voir mes rêves</a>
     {% else %}
       <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg">Commencer</a>
       <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-lg">J'ai déjà un compte</a>
