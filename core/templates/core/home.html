@@ -7,5 +7,13 @@
     Racontez votre rêve à voix haute : il est transcrit, son émotion est analysée
     et une image l'illustre. Retrouvez ensuite tous vos rêves dans votre espace.
   </p>
+  <div class="mt-4 d-flex justify-content-center gap-2">
+    {% if user.is_authenticated %}
+      <span class="text-secondary">Bonjour {{ user.username }} 👋</span>
+    {% else %}
+      <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg">Commencer</a>
+      <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-lg">J'ai déjà un compte</a>
+    {% endif %}
+  </div>
 </div>
 {% endblock %}
