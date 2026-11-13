@@ -71,3 +71,22 @@ Ce journal alimente le rapport technique et la code review.
 - **Symptôme :** dès l'ajout du premier fichier JavaScript (`recorder.js`), les tests de la page d'enregistrement levaient `ValueError: Missing staticfiles manifest entry for 'js/recorder.js'`.
 - **Diagnostic :** en production, WhiteNoise sert les statiques via un **manifeste** (noms avec empreinte, pour le cache) généré par `collectstatic`. Les tests tournent avec `DEBUG=False`, donc avec ce stockage, mais sans avoir lancé `collectstatic`.
 - **Correction :** fixture `autouse` qui utilise le stockage statique simple pendant les tests. La production garde le manifeste, et le build Docker de la CI vérifie que `collectstatic` fonctionne.
+### 🐞 Bug critique #23 : le bouton « Supprimer » ne faisait rien
+> Ticket choisi pour la **code review en direct**.
+
+- **Symptôme :** sur la page d'un rêve, cliquer sur « Supprimer » n'ouvrait aucune fenêtre. La suppression était impossible depuis l'interface. Les 44 tests passaient pourtant.
+- **Diagnostic :**
+  1. Reproduction manuelle : le clic ne fait rien et le titre de l'onglet est anormalement long.
+  2. Lecture du HTML rendu : le code de la fenêtre `#delete-modal` est **à l'intérieur de `<title>`**.
+  3. Cause dans le gabarit : lors de l'ajout de la fenêtre, le script d'édition a remplacé le **premier** `{% endblock %}` du fichier, celui du bloc `title`, au lieu du dernier (bloc `content`).
+  4. Conséquence : le navigateur lit le contenu de `<title>` comme du texte brut, donc la fenêtre n'existe pas dans le DOM. Bootstrap annule la navigation du lien (`data-bs-toggle="modal"`) sans rien ouvrir, et la page de repli n'est jamais atteinte.
+- **Pourquoi les tests ne l'ont pas vu :** ils vérifiaient que le texte « Supprimer définitivement » était **présent** dans la réponse, pas **où**.
+- **Méthode (TDD) :**
+  1. écrire un test qui reproduit le bug : le titre ne doit pas contenir de HTML, la fenêtre doit être dans `<body>` ;
+  2. constater qu'il échoue (`Le titre contient du HTML : '… <di'`) et le committer seul ;
+  3. corriger en déplaçant la fenêtre à la fin du bloc `content` ;
+  4. le test passe et reste dans la suite comme **test de non-régression**.
+- **Leçons :**
+  - un test d'interface doit vérifier la **structure**, pas seulement la présence d'un texte ;
+  - une modification automatisée d'un fichier doit cibler une ancre **unique** ;
+  - le test manuel dans un vrai navigateur reste indispensable : l'ajout de tests navigateur (Playwright) est une piste d'amélioration.
