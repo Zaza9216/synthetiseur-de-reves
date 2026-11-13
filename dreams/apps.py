@@ -9,3 +9,7 @@ class DreamsConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "dreams"
     verbose_name = "Rêves"
+
+    def ready(self) -> None:
+        """Enregistre les signaux de l'application au démarrage."""
+        from dreams import signals  # noqa: F401
