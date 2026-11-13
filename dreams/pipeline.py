@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from functools import cache
 
 from django.conf import settings
-from django.db import DatabaseError, close_old_connections, transaction
+from django.db import close_old_connections, transaction
 from django.utils import timezone
 
 from dreams.ai.errors import AIServiceError
@@ -60,13 +60,22 @@ STEPS: tuple[Step, ...] = (
 )
 
 
-def _save(dream: Dream, *fields: str) -> None:
-    """Sauvegarde uniquement les champs indiqués.
+class DreamDeletedError(Exception):
+    """Le rêve a été supprimé par l'utilisateur pendant son traitement."""
 
-    ``update_fields`` lève une ``DatabaseError`` si la ligne n'existe plus :
-    un rêve supprimé pendant son traitement n'est donc jamais recréé.
+
+def _save(dream: Dream, *fields: str) -> None:
+    """Enregistre uniquement les champs indiqués, si le rêve existe toujours.
+
+    Une mise à jour ciblée (``UPDATE … WHERE id = …``) ne recrée jamais une
+    ligne supprimée, contrairement à ``save()`` qui ferait un ``INSERT``.
+
+    Raises:
+        DreamDeletedError: Si le rêve n'existe plus en base.
     """
-    dream.save(update_fields=[*fields, "updated_at"])
+    values = {field: getattr(dream, field) for field in fields}
+    if not Dream.objects.filter(pk=dream.pk).update(**values, updated_at=timezone.now()):
+        raise DreamDeletedError
 
 
 def process_dream(dream_id: int) -> None:
@@ -100,25 +109,21 @@ def process_dream(dream_id: int) -> None:
             _save(dream, "status")
             step.run(dream)
             _save(dream, *step.fields)
+        dream.status = Status.TERMINE
+        dream.processed_at = timezone.now()
+        _save(dream, "status", "processed_at")
+    except DreamDeletedError:
+        logger.info("Rêve %s supprimé pendant son traitement : arrêt", dream_id)
+        return
     except AIServiceError as error:
         logger.warning("Rêve %s en échec à l'étape %s : %s", dream_id, dream.status, error)
         _mark_failed(dream, error.user_message)
         return
     except Exception:
-        if not Dream.objects.filter(pk=dream_id).exists():
-            logger.info("Rêve %s supprimé pendant son traitement : arrêt", dream_id)
-            return
         logger.exception("Erreur inattendue pendant le traitement du rêve %s", dream_id)
         _mark_failed(dream, GENERIC_ERROR_MESSAGE)
         return
 
-    dream.status = Status.TERMINE
-    dream.processed_at = timezone.now()
-    try:
-        _save(dream, "status", "processed_at")
-    except DatabaseError:
-        logger.info("Rêve %s supprimé pendant son traitement : arrêt", dream_id)
-        return
     duration = (dream.processed_at - dream.created_at).total_seconds()
     logger.info("Rêve %s traité en %.1f s depuis sa création", dream_id, duration)
 

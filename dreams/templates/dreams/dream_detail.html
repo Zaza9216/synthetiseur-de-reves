@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}{{ dream.title }} · Synthétiseur de rêves{% endblock %}
 
@@ -26,8 +27,37 @@
       {% include "dreams/includes/status_badge.html" %}
     </div>
 
-    {% if dream.status == "echec" and dream.error_message %}
-      <div class="alert alert-danger" role="alert">{{ dream.error_message }}</div>
+    {% if dream.can_retry %}
+      <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert">
+        <span>
+          <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+          {% if dream.is_stalled %}Le traitement semble bloqué.{% else %}{{ dream.error_message|default:"Le traitement a échoué." }}{% endif %}
+        </span>
+        <form method="post" action="{% url 'dreams:retry' dream.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-light"><i class="bi bi-arrow-repeat"></i> Relancer</button>
+        </form>
+      </div>
+    {% elif dream.is_processing %}
+      {# Suivi en direct : le script interroge le serveur et recharge la page à la fin. #}
+      <div class="card card-body bg-body-tertiary mb-4" id="processing-panel"
+           data-status-url="{% url 'dreams:status' dream.pk %}">
+        <p class="mb-3" aria-live="polite">
+          <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
+          <span id="processing-label">{{ dream.get_status_display }}</span>…
+          <span class="d-block small text-secondary mt-1">Cette page se met à jour toute seule, vous pouvez patienter ici.</span>
+        </p>
+        <ol class="list-unstyled d-flex gap-3 mb-0 small">
+          {% for step in progress_steps %}
+            <li class="{% if step.state == 'todo' %}text-secondary{% elif step.state == 'active' %}fw-semibold text-primary{% else %}text-success{% endif %}">
+              {% if step.state == "done" %}<i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+              {% elif step.state == "active" %}<i class="bi bi-arrow-right-circle-fill" aria-hidden="true"></i>
+              {% else %}<i class="bi bi-circle" aria-hidden="true"></i>{% endif %}
+              {{ step.label }}
+            </li>
+          {% endfor %}
+        </ol>
+      </div>
     {% endif %}
 
     <h2 class="h5">Récit du rêve</h2>
@@ -85,4 +115,8 @@
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+  {% if dream.is_processing and not dream.is_stalled %}<script src="{% static 'js/dream-status.js' %}" defer></script>{% endif %}
 {% endblock %}

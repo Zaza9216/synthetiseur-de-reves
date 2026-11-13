@@ -49,6 +49,20 @@ def _simple_static_storage(settings: Settings) -> None:
 
 
 @pytest.fixture(autouse=True)
+def _no_background_processing(settings: Settings) -> None:
+    """Désactive le traitement automatique des rêves et les vraies clés API.
+
+    Aucun test ne doit appeler une API payante : les tests du pipeline
+    appellent ``process_dream`` explicitement, avec des services simulés.
+
+    Args:
+        settings: Fixture pytest-django permettant de surcharger les réglages.
+    """
+    settings.DREAM_PROCESSING_MODE = "off"
+    settings.OPENAI_API_KEY = "sk-test-not-a-real-key"
+
+
+@pytest.fixture(autouse=True)
 def _temporary_media_root(settings: Settings, tmp_path: Path) -> None:
     """Écrit les fichiers envoyés pendant les tests dans un dossier temporaire.
 
