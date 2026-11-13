@@ -1,0 +1,51 @@
+# Infrastructure Render décrite en code (« Blueprint »).
+# Création : Render → New → Blueprint → choisir ce dépôt.
+# Les déploiements suivants sont déclenchés par la CI GitHub Actions, après les tests.
+
+services:
+  - type: web
+    name: synthetiseur-de-reves
+    runtime: docker
+    plan: free
+    region: frankfurt          # hébergement dans l'Union européenne (RGPD)
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health/
+    autoDeployTrigger: "off"   # déploiement piloté par la CI, seulement si elle est verte
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: synthetiseur-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: LOG_FORMAT
+        value: json
+      - key: MEDIA_STORAGE
+        value: database
+      - key: DREAM_PROCESSING_MODE
+        value: thread
+      - key: AI_MONTHLY_BUDGET_USD
+        value: "15"
+      - key: WEB_CONCURRENCY
+        value: "2"
+      # Secrets à saisir dans l'interface Render (jamais dans le dépôt) :
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+
+databases:
+  - name: synthetiseur-db
+    plan: free
+    region: frankfurt
+    databaseName: dreams
+    user: dreams
+    ipAllowList: []            # aucune connexion depuis Internet : réseau privé Render uniquement

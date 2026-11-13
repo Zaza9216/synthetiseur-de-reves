@@ -173,3 +173,16 @@ Ce journal alimente le rapport technique et la code review.
 - **Pourquoi p95 et pas seulement la moyenne :** la moyenne masque les cas lents que vivent réellement certains utilisateurs. Le p95 indique le temps sous lequel passent 95 % des traitements.
 - **Sonde de santé avant `ALLOWED_HOSTS` :** la sonde de l'hébergeur appelle le service par son adresse interne. Sans le middleware dédié, Django répondrait 400 et Render croirait le service en panne.
 - **RGPD :** Sentry est configuré sans données personnelles (`send_default_pii=False`). Les logs contiennent des identifiants techniques (numéros de rêve et d'utilisateur), jamais le contenu des rêves.
+
+### Décision : hébergement Render, fichiers dans PostgreSQL
+- **Hébergeur :** Render, offre gratuite, région **Francfort** (données dans l'UE, RGPD). L'infrastructure est décrite dans `render.yaml` (« infrastructure as code »), reproductible en quelques clics.
+- **🧱 Difficulté : disque éphémère.** Sur l'offre gratuite, le disque du serveur est effacé à chaque redémarrage ou déploiement : les audios et les images des rêves seraient perdus.
+  - Alternatives étudiées : disque persistant Render (payant, environ 7 $ par mois minimum) ; stockage objet S3, R2 ou B2 (un compte tiers de plus, souvent avec carte bancaire).
+  - **Choix :** un `Storage` Django maison (`DatabaseStorage`) qui enregistre les fichiers dans PostgreSQL. Les volumes sont faibles (audio ≤ 10 Mo, image ≈ 55 Ko). Le passage à S3 plus tard ne demandera que de changer `STORAGES`, le reste du code n'étant pas concerné.
+- **Sécurité : fichiers privés.** Avant ce sprint, les fichiers étaient servis publiquement (quiconque connaissait l'adresse pouvait voir l'image). Désormais, `MEDIA_URL` pointe vers une vue protégée qui vérifie que le fichier appartient à un rêve de l'utilisateur connecté. Sinon : 404, sans révéler l'existence du fichier.
+- **🧱 Difficulté anticipée : lecture audio sous Safari.** Safari exige des réponses partielles (`Range`, HTTP 206) pour lire un audio. La vue protégée gère les plages d'octets (testée sur 10 cas).
+- **Base de données privée :** `ipAllowList: []`, donc aucune connexion possible depuis Internet, seulement depuis le service web.
+- **Déploiement continu conditionné :** l'auto-déploiement de Render est désactivé. C'est la CI qui déclenche le déploiement, **seulement si lint, tests et build sont verts**, puis qui interroge `/health/` jusqu'à voir le **commit attendu** en ligne (smoke test).
+- **Démarrage :** `scripts/start.sh` applique les migrations, crée le compte administrateur depuis les variables d'environnement (pas de terminal sur l'offre gratuite), puis lance Gunicorn en mode `gthread` (2 processus × 4 fils).
+- **Répétition générale en local :** Gunicorn avec `DEBUG=False`, logs JSON, stockage en base. Sonde de santé OK avec un `Host` interne, domaine inconnu refusé (400), fichier sans connexion redirigé, administrateur créé.
+- **Limite connue :** les logs d'accès de Gunicorn restent au format texte. Seuls les logs de l'application sont en JSON.
