@@ -1,6 +1,8 @@
 """Modèle de données des rêves."""
 
 import uuid
+from datetime import timedelta
+from decimal import Decimal
 from pathlib import Path
 from typing import NamedTuple
 
@@ -116,6 +118,7 @@ class Dream(models.Model):
     error_message = models.TextField("message d'erreur", blank=True)
     created_at = models.DateTimeField("créé le", auto_now_add=True)
     updated_at = models.DateTimeField("modifié le", auto_now=True)
+    processed_at = models.DateTimeField("traité le", null=True, blank=True)
 
     class Meta:
         verbose_name = "rêve"
@@ -150,8 +153,72 @@ class Dream(models.Model):
         return self.status not in (Status.TERMINE, Status.ECHEC)
 
     @property
+    def is_stalled(self) -> bool:
+        """Indique si un traitement en cours semble bloqué.
+
+        Le traitement tourne dans un fil d'exécution du serveur : il peut être
+        interrompu par un redémarrage. Au-delà de ``DREAM_STALLED_MINUTES``
+        sans progression, l'utilisateur peut le relancer.
+        """
+        if not self.is_processing or self.updated_at is None:
+            return False
+        limit = timedelta(minutes=settings.DREAM_STALLED_MINUTES)
+        return timezone.now() - self.updated_at > limit
+
+    @property
+    def can_retry(self) -> bool:
+        """Indique si l'utilisateur peut relancer le traitement du rêve."""
+        return self.status == Status.ECHEC or self.is_stalled
+
+    @property
     def emotion_percent(self) -> int | None:
         """Score de confiance exprimé en pourcentage entier, ou ``None``."""
         if self.emotion_score is None:
             return None
         return round(self.emotion_score * 100)
+
+
+class ApiService(models.TextChoices):
+    """Services d'IA appelés pendant le traitement d'un rêve."""
+
+    TRANSCRIPTION = "transcription", "Transcription"
+    EMOTION = "emotion", "Émotion"
+    IMAGE = "image", "Image"
+
+
+class ApiCall(models.Model):
+    """Journal d'un appel à une API d'IA : durée, résultat, coût estimé.
+
+    Sert au monitoring (latence, taux d'échec) et au suivi du budget. Les
+    appels sont conservés si le rêve est supprimé (``SET_NULL``) : la dépense
+    a bien eu lieu et doit rester comptabilisée.
+    """
+
+    dream = models.ForeignKey(
+        Dream,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="api_calls",
+        verbose_name="rêve",
+    )
+    service = models.CharField("service", max_length=20, choices=ApiService.choices)
+    provider = models.CharField("fournisseur", max_length=30, default="openai")
+    model_name = models.CharField("modèle", max_length=60)
+    success = models.BooleanField("succès")
+    duration_ms = models.PositiveIntegerField("durée (ms)")
+    cost_usd = models.DecimalField(
+        "coût estimé ($)", max_digits=10, decimal_places=6, default=Decimal("0")
+    )
+    error_type = models.CharField("type d'erreur", max_length=80, blank=True)
+    created_at = models.DateTimeField("appelé le", auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = "appel API"
+        verbose_name_plural = "appels API"
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        """Résumé lisible de l'appel."""
+        result = "OK" if self.success else f"échec ({self.error_type})"
+        return f"{self.get_service_display()} · {self.model_name} · {result}"

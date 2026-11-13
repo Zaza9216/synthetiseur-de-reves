@@ -9,17 +9,20 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import QuerySet
 from django.forms import Form
 from django.http import HttpRequest, HttpResponse, JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.views import View
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DeleteView, DetailView, ListView
 
 from dreams.forms import DreamCreateForm
-from dreams.models import Dream
+from dreams.models import Dream, Status
+from dreams.pipeline import enqueue_dream, retry_dream
 from dreams.quotas import dreams_left_today
 
 logger = logging.getLogger(__name__)
@@ -44,10 +47,24 @@ class DreamListView(UserDreamsMixin, ListView):
 
 
 class DreamDetailView(UserDreamsMixin, DetailView):
-    """Détail d'un rêve : image, transcription, émotion, audio."""
+    """Détail d'un rêve : image, transcription, émotion, audio et suivi du traitement."""
 
     template_name = "dreams/dream_detail.html"
     context_object_name = "dream"
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """Ajoute les étapes de progression du traitement."""
+        context = super().get_context_data(**kwargs)
+        statuses = [status for status, _ in PROGRESS_STEPS]
+        current = statuses.index(self.object.status) if self.object.status in statuses else -1
+        context["progress_steps"] = [
+            {
+                "label": label,
+                "state": "done" if i < current else "active" if i == current else "todo",
+            }
+            for i, (_, label) in enumerate(PROGRESS_STEPS)
+        ]
+        return context
 
 
 class DreamDeleteView(UserDreamsMixin, DeleteView):
@@ -112,6 +129,7 @@ class DreamCreateView(LoginRequiredMixin, View):
         dream.user = request.user
         dream.save()
         logger.info("Rêve %s créé par l'utilisateur %s", dream.pk, request.user.pk)
+        enqueue_dream(dream.pk)
 
         detail_url = reverse("dreams:detail", args=[dream.pk])
         if _wants_json(request):
@@ -129,3 +147,66 @@ class DreamCreateView(LoginRequiredMixin, View):
             "max_mb": settings.DREAM_AUDIO_MAX_MB,
         }
         return render(request, self.template_name, context, status=status)
+
+
+# Étapes affichées à l'utilisateur pendant le traitement, dans l'ordre.
+PROGRESS_STEPS: tuple[tuple[Status, str], ...] = (
+    (Status.TRANSCRIPTION, "Transcription"),
+    (Status.ANALYSE, "Émotion"),
+    (Status.GENERATION, "Image"),
+)
+
+
+def dream_status_payload(dream: Dream) -> dict[str, Any]:
+    """Construit l'état de traitement d'un rêve, pour la page de suivi.
+
+    Args:
+        dream: Le rêve concerné.
+
+    Returns:
+        Un dictionnaire sérialisable en JSON : statut, libellé, indicateurs.
+    """
+    return {
+        "status": dream.status,
+        "status_label": dream.get_status_display(),
+        "is_processing": dream.is_processing,
+        "can_retry": dream.can_retry,
+        "error_message": dream.error_message,
+    }
+
+
+@require_GET
+def dream_status(request: HttpRequest, pk: int) -> JsonResponse:
+    """Renvoie l'état du traitement d'un rêve (interrogé régulièrement par la page).
+
+    Args:
+        request: Requête HTTP entrante.
+        pk: Identifiant du rêve.
+
+    Returns:
+        L'état du traitement en JSON, ou 401 / 404.
+    """
+    if not request.user.is_authenticated:
+        return JsonResponse({"error": "Authentification requise."}, status=401)
+    dream = get_object_or_404(Dream, pk=pk, user=request.user)
+    return JsonResponse(dream_status_payload(dream))
+
+
+@login_required
+@require_POST
+def dream_retry(request: HttpRequest, pk: int) -> HttpResponse:
+    """Relance le traitement d'un rêve en échec ou bloqué.
+
+    Args:
+        request: Requête HTTP entrante.
+        pk: Identifiant du rêve.
+
+    Returns:
+        Une redirection vers la page du rêve.
+    """
+    dream = get_object_or_404(Dream, pk=pk, user=request.user)
+    if retry_dream(dream):
+        messages.info(request, "Le traitement de votre rêve a été relancé.")
+    else:
+        messages.warning(request, "Ce rêve ne peut pas être relancé pour le moment.")
+    return redirect("dreams:detail", pk=dream.pk)
