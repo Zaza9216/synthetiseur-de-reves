@@ -48,6 +48,29 @@ Ce journal alimente le rapport technique et la code review.
 - **Pourquoi :** `delete()` n'est **pas appelée** lors des suppressions en masse (`queryset.delete()`) ni lors de la cascade quand un compte est supprimé. Le signal, lui, est émis dans tous ces cas. Le test `test_deleting_user_account_removes_dream_files` le vérifie.
 - **Robustesse :** une erreur de stockage est journalisée, mais ne bloque pas la suppression.
 
+---
+
+## Sprint 2 : pipeline IA
+
+### 🧱 Difficulté : l'inférence gratuite Hugging Face n'est plus disponible
+- **Constat :** les appels aux modèles d'émotion sur Hugging Face (`MilaNLProc/xlm-emo-t`, `j-hartmann/emotion-english-distilroberta-base`, modèles zero-shot multilingues) renvoient **HTTP 402**. Les « Inference Providers » demandent des crédits prépayés ou un abonnement PRO.
+- **Alternatives étudiées :**
+  - faire tourner le modèle localement avec `transformers` : environ 1 Go de dépendances (PyTorch) et une RAM incompatible avec un hébergement gratuit (512 Mo) ;
+  - acheter des crédits Hugging Face : un deuxième fournisseur payant à gérer ;
+  - **`gpt-4o-mini` d'OpenAI**, déjà utilisé pour la transcription : il comprend nativement le français et coûte environ 0,0001 $ par rêve.
+- **Décision :** classification par `gpt-4o-mini`, avec en secours un **classifieur lexical local** (mots-clés français) pour que l'application réponde même si l'API est indisponible.
+
+### Décision : valider l'audio par sa signature, pas par son nom
+- **Choix :** on lit les premiers octets du fichier envoyé (signature WebM, Ogg, WAV, FLAC, MP4, MP3), en plus de vérifier l'extension, la taille (10 Mo) et la durée (5 min).
+- **Pourquoi :** le nom et le type MIME sont fournis par le navigateur, donc falsifiables. Un fichier texte ou un exécutable renommé en `.mp3` est refusé **avant** d'être stocké ou envoyé (et facturé) à l'API.
+
+### Décision : quota de 10 rêves par jour et par utilisateur
+- **Pourquoi :** c'est l'hypothèse d'usage retenue en pré-production (10 rêves par jour), et chaque rêve déclenche des appels payants. Le quota protège le budget de 20 € contre un usage abusif ou un script. La valeur se règle avec la variable `DREAM_DAILY_LIMIT`.
+
+### 🐞 Bug : « Missing staticfiles manifest entry » dans les tests
+- **Symptôme :** dès l'ajout du premier fichier JavaScript (`recorder.js`), les tests de la page d'enregistrement levaient `ValueError: Missing staticfiles manifest entry for 'js/recorder.js'`.
+- **Diagnostic :** en production, WhiteNoise sert les statiques via un **manifeste** (noms avec empreinte, pour le cache) généré par `collectstatic`. Les tests tournent avec `DEBUG=False`, donc avec ce stockage, mais sans avoir lancé `collectstatic`.
+- **Correction :** fixture `autouse` qui utilise le stockage statique simple pendant les tests. La production garde le manifeste, et le build Docker de la CI vérifie que `collectstatic` fonctionne.
 ### 🐞 Bug critique #23 : le bouton « Supprimer » ne faisait rien
 > Ticket choisi pour la **code review en direct**.
 

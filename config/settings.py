@@ -121,6 +121,14 @@ STORAGES = {
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# --- Rêves ------------------------------------------------------------------------
+DREAM_AUDIO_MAX_MB = env.int("DREAM_AUDIO_MAX_MB", default=10)
+DREAM_AUDIO_MAX_SECONDS = env.int("DREAM_AUDIO_MAX_SECONDS", default=300)
+# Nombre maximal de rêves par utilisateur et par jour (maîtrise du budget API).
+DREAM_DAILY_LIMIT = env.int("DREAM_DAILY_LIMIT", default=10)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+
 # --- Logs ------------------------------------------------------------------------
 LOGGING = {
     "version": 1,

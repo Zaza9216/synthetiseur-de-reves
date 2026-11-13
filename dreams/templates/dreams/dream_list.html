@@ -44,6 +44,7 @@
   <div class="text-center py-5 text-secondary">
     <i class="bi bi-moon display-1" aria-hidden="true"></i>
     <p class="lead mt-3">Vous n'avez encore raconté aucun rêve.</p>
+    <a href="{% url 'dreams:create' %}" class="btn btn-primary btn-lg mt-2"><i class="bi bi-mic"></i> Raconter mon premier rêve</a>
   </div>
 {% endif %}
 {% endblock %}

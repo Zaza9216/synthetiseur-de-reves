@@ -93,6 +93,12 @@ class Dream(models.Model):
         verbose_name="utilisateur",
     )
     audio = models.FileField("enregistrement audio", upload_to=audio_upload_path, blank=True)
+    audio_duration = models.FloatField(
+        "durée de l'audio (s)",
+        null=True,
+        blank=True,
+        help_text="Durée mesurée par le navigateur ; sert à estimer le coût de transcription.",
+    )
     transcription = models.TextField("transcription", blank=True)
     emotion = models.CharField("émotion", max_length=20, choices=Emotion.choices, blank=True)
     emotion_score = models.FloatField(
