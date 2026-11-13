@@ -5,8 +5,9 @@ from django.contrib.auth import get_user_model
 from django.test import Client
 from django.urls import reverse
 
+from tests.conftest import STRONG_PASSWORD
+
 User = get_user_model()
-STRONG_PASSWORD = "Reve-Lucide-2026!"
 
 
 def _signup_data(**overrides: str) -> dict[str, str]:
@@ -19,12 +20,6 @@ def _signup_data(**overrides: str) -> dict[str, str]:
     }
     data.update(overrides)
     return data
-
-
-@pytest.fixture
-def user(db: None) -> User:
-    """Crée un utilisateur existant."""
-    return User.objects.create_user("bob", "bob@example.com", STRONG_PASSWORD)
 
 
 # --- Inscription -----------------------------------------------------------------

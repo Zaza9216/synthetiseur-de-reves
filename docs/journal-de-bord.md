@@ -25,3 +25,19 @@ Ce journal alimente le rapport technique et la code review.
 - **Correction :** fixture pytest `autouse` dans `tests/conftest.py`, qui désactive la redirection HTTPS pendant les tests. Le comportement des tests ne dépend plus de l'environnement.
 - **Vérification :** tests lancés en local avec et sans `.env`, puis CI verte.
 - **Leçon :** les tests ne doivent jamais dépendre de la configuration locale du développeur. Il faut reproduire les conditions de la CI en local avant de pousser.
+
+### Décision : modèle utilisateur personnalisé dès le départ
+- **Choix :** `accounts.User` (hérite d'`AbstractUser`) avec un email unique et obligatoire.
+- **Pourquoi :** Django recommande de le faire **avant la première migration**. Changer de modèle utilisateur une fois la base en production impose des migrations lourdes et risquées.
+
+### Décision : cloisonnement des données par utilisateur
+- **Choix :** toutes les vues des rêves héritent d'un mixin `UserDreamsMixin`, qui filtre le queryset sur `request.user`.
+- **Pourquoi :** un rêve est une donnée intime. Si un utilisateur demande le rêve d'un autre, il reçoit une **404** et non une 403 : on ne révèle même pas que le rêve existe. Le filtre est centralisé dans un seul mixin, donc impossible à oublier dans une nouvelle vue.
+
+### Décision : noms de fichiers anonymes
+- **Choix :** les fichiers audio et les images sont renommés en `dreams/<type>/<année>/<mois>/<uuid>.<ext>`.
+- **Pourquoi :** le nom d'origine peut contenir des données personnelles (« Rêve de Bob.mp3 »). L'UUID empêche aussi de deviner l'adresse des fichiers des autres utilisateurs.
+
+### Décision : statut de traitement sur le rêve
+- **Choix :** un champ `status` suit chaque étape (en attente → transcription → analyse → génération → terminé / échec), complété par un `error_message`.
+- **Pourquoi :** les appels aux API d'IA prennent plusieurs secondes et peuvent échouer. L'interface doit toujours pouvoir dire où en est le traitement, ce qui prépare le traitement en arrière-plan du Sprint 2.
