@@ -31,6 +31,24 @@ def _disable_https_redirect(settings: Settings) -> None:
 
 
 @pytest.fixture(autouse=True)
+def _simple_static_storage(settings: Settings) -> None:
+    """Utilise un stockage statique simple pendant les tests.
+
+    En production, WhiteNoise sert les fichiers statiques via un manifeste
+    (noms de fichiers avec empreinte, pour le cache navigateur) généré par
+    ``collectstatic``. Ce manifeste n'existe pas pendant les tests : sans
+    cette fixture, toute page utilisant ``{% static %}`` lève une erreur.
+
+    Args:
+        settings: Fixture pytest-django permettant de surcharger les réglages.
+    """
+    settings.STORAGES = {
+        **settings.STORAGES,
+        "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+    }
+
+
+@pytest.fixture(autouse=True)
 def _temporary_media_root(settings: Settings, tmp_path: Path) -> None:
     """Écrit les fichiers envoyés pendant les tests dans un dossier temporaire.
 
