@@ -10,6 +10,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.test import Client
 from django.urls import reverse
+from django.utils.html import escape
 
 from dreams.models import Dream
 from tests.conftest import fake_audio
@@ -112,3 +113,18 @@ def test_detail_page_offers_delete_button(
 
     assert reverse("dreams:delete", args=[dream_with_files.pk]) in html
     assert "Supprimer définitivement" in html
+
+
+def test_delete_modal_is_in_page_body_not_in_title(
+    client: Client, user: Any, dream_with_files: Dream
+) -> None:
+    """Non-régression #23 : la fenêtre de confirmation était insérée dans <title>."""
+    client.force_login(user)
+
+    html = client.get(reverse("dreams:detail", args=[dream_with_files.pk])).content.decode()
+    title = html.split("<title>", 1)[1].split("</title>", 1)[0]
+    body = html.split("<body", 1)[1]
+
+    assert "<" not in title, f"Le titre contient du HTML : {title[:80]!r}"
+    assert title.strip() == f"{escape(dream_with_files.title)} · Synthétiseur de rêves"
+    assert 'id="delete-modal"' in body
