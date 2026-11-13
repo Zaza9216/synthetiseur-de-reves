@@ -1,0 +1,26 @@
+{# Affiche les champs d'un formulaire Django avec le style Bootstrap et les erreurs accessibles. #}
+{% if form.non_field_errors %}
+  <div class="alert alert-danger" role="alert">
+    {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+  </div>
+{% endif %}
+{% for field in form %}
+  <div class="mb-3">
+    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+    <input type="{{ field.field.widget.input_type|default:'text' }}"
+           name="{{ field.html_name }}"
+           id="{{ field.id_for_label }}"
+           class="form-control{% if field.errors %} is-invalid{% endif %}"
+           {% if field.value and field.field.widget.input_type != 'password' %}value="{{ field.value }}"{% endif %}
+           {% if field.field.required %}required{% endif %}
+           {% if field.errors %}aria-invalid="true" aria-describedby="{{ field.id_for_label }}-errors"{% elif field.help_text %}aria-describedby="{{ field.id_for_label }}-help"{% endif %}
+           {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}>
+    {% if field.errors %}
+      <div class="invalid-feedback" id="{{ field.id_for_label }}-errors">
+        {% for error in field.errors %}<div>{{ error }}</div>{% endfor %}
+      </div>
+    {% elif field.help_text %}
+      <div class="form-text" id="{{ field.id_for_label }}-help">{{ field.help_text|safe }}</div>
+    {% endif %}
+  </div>
+{% endfor %}
