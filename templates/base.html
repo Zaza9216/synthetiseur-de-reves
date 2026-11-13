@@ -18,6 +18,9 @@
         {% if user.is_authenticated %}
           <a class="btn btn-primary btn-sm" href="{% url 'dreams:create' %}"><i class="bi bi-mic"></i> Nouveau rêve</a>
           <a class="nav-link" href="{% url 'dreams:list' %}"><i class="bi bi-journal-text"></i> Mes rêves</a>
+          {% if user.is_staff %}
+            <a class="nav-link" href="{% url 'core:supervision' %}"><i class="bi bi-activity"></i> Supervision</a>
+          {% endif %}
           <span class="navbar-text text-light d-none d-sm-inline">
             <i class="bi bi-person-circle"></i> {{ user.username }}
           </span>

@@ -73,6 +73,9 @@ Docker Compose lance l'application et une base PostgreSQL. L'application est dis
 | `DREAM_DAILY_LIMIT` | Rêves maximum par utilisateur et par jour | `10` |
 | `IMAGE_MODEL` / `IMAGE_QUALITY` | Modèle et qualité des images | `gpt-image-1-mini` / `medium` |
 | `AI_MONTHLY_BUDGET_USD` | Plafond de dépenses IA mensuel ($) | `15` |
+| `LOG_FORMAT` | Logs `text` (local) ou `json` (production) | `json` |
+| `SLOW_REQUEST_MS` | Seuil d'alerte des requêtes lentes (ms) | `1000` |
+| `SENTRY_DSN` | Suivi des erreurs Sentry (facultatif) | `https://…@sentry.io/…` |
 | `OPENAI_TIMEOUT` / `OPENAI_MAX_RETRIES` | Délai max par appel (s) / nouvelles tentatives | `60` / `2` |
 
 Le fichier `.env` n'est **jamais** commité.
@@ -99,8 +102,16 @@ uv run pytest                # tests + rapport de couverture (seuil minimal : 70
 
 ## Supervision
 
-- `GET /health/` : sonde de santé (`200` si l'application et la base répondent, `503` sinon)
-- Logs structurés sur la sortie standard, avec niveau configurable par `LOG_LEVEL`
+| Outil | Rôle |
+|---|---|
+| `GET /health/` | Sonde de santé : `200` si l'application et la base répondent, `503` sinon. Renvoie aussi la version déployée |
+| **Page `/supervision/`** (administrateurs) | Rêves traités, taux de succès, durée p50/p95 ; par service d'IA : appels, échecs, latence p50/p95, coût, taux de repli ; budget du mois ; dernières erreurs |
+| **Journal `ApiCall`** (admin Django) | Chaque appel d'IA : service, modèle, durée, succès, type d'erreur, coût estimé |
+| **Logs JSON** (`LOG_FORMAT=json`) | Une ligne JSON par événement (niveau, module, message, champs utiles) |
+| **Requêtes lentes** | Journalisées au-delà de `SLOW_REQUEST_MS`, en-tête `Server-Timing` sur chaque réponse |
+| **Sentry** (facultatif) | Erreurs avec trace complète, sans données personnelles (`send_default_pii=False`) |
+
+Pour accéder à la supervision, créez un compte administrateur : `uv run python manage.py createsuperuser`.
 
 ## Structure du projet
 

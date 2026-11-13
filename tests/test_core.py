@@ -23,7 +23,7 @@ def test_health_returns_ok_when_database_is_up(client: Client) -> None:
     response = client.get(reverse("core:health"))
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok", "database": "up"}
+    assert response.json() == {"status": "ok", "database": "up", "version": "dev"}
 
 
 @pytest.mark.django_db

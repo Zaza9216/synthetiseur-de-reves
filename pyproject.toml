@@ -8,6 +8,7 @@ dependencies = [
     "gunicorn>=27.0.1",
     "openai>=3.50.0",
     "psycopg[binary]>=3.3.9",
+    "sentry-sdk>=2.75.0",
     "whitenoise>=6.12.0",
 ]
 
