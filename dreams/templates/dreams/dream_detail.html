@@ -1,26 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ dream.title }} · Synthétiseur de rêves
-{# Fenêtre de confirmation ; sans JavaScript, le lien mène à la page de confirmation. #}
-<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal-title" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <form method="post" action="{% url 'dreams:delete' dream.pk %}" class="modal-content">
-      {% csrf_token %}
-      <div class="modal-header">
-        <h2 class="modal-title h5" id="delete-modal-title">Supprimer ce rêve ?</h2>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
-      </div>
-      <div class="modal-body">
-        Le récit, l'enregistrement audio et l'image seront <strong>supprimés définitivement</strong>.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-        <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
-      </div>
-    </form>
-  </div>
-</div>
-{% endblock %}
+{% block title %}{{ dream.title }} · Synthétiseur de rêves{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -63,6 +43,26 @@
         Votre navigateur ne peut pas lire cet enregistrement.
       </audio>
     {% endif %}
+  </div>
+</div>
+
+{# Fenêtre de confirmation ; sans JavaScript, le lien mène à la page de confirmation. #}
+<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="post" action="{% url 'dreams:delete' dream.pk %}" class="modal-content">
+      {% csrf_token %}
+      <div class="modal-header">
+        <h2 class="modal-title h5" id="delete-modal-title">Supprimer ce rêve ?</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Le récit, l'enregistrement audio et l'image seront <strong>supprimés définitivement</strong>.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="submit" class="btn btn-danger">Supprimer définitivement</button>
+      </div>
+    </form>
   </div>
 </div>
 
