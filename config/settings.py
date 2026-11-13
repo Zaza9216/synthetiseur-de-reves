@@ -25,6 +25,12 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 
+# Render fournit le nom de domaine public du service.
+RENDER_EXTERNAL_HOSTNAME = env("RENDER_EXTERNAL_HOSTNAME", default="")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS = [*ALLOWED_HOSTS, RENDER_EXTERNAL_HOSTNAME]
+    CSRF_TRUSTED_ORIGINS = [*CSRF_TRUSTED_ORIGINS, f"https://{RENDER_EXTERNAL_HOSTNAME}"]
+
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
@@ -115,12 +121,20 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+# Stockage des fichiers des rêves : "filesystem" (local) ou "database" (production,
+# l'hébergement gratuit n'ayant qu'un disque éphémère).
+MEDIA_STORAGE = env("MEDIA_STORAGE", default="filesystem")
 STORAGES = {
-    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "default": {
+        "BACKEND": "core.storage.DatabaseStorage"
+        if MEDIA_STORAGE == "database"
+        else "django.core.files.storage.FileSystemStorage"
+    },
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
 }
 
-MEDIA_URL = "media/"
+# Servis uniquement par une vue protégée (propriétaire du rêve ou administrateur).
+MEDIA_URL = "/fichiers/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 # --- Rêves ------------------------------------------------------------------------
@@ -147,6 +161,11 @@ AI_MONTHLY_BUDGET_USD = env.float("AI_MONTHLY_BUDGET_USD", default=15.0)
 DREAM_PROCESSING_MODE = env("DREAM_PROCESSING_MODE", default="thread")
 DREAM_PROCESSING_WORKERS = env.int("DREAM_PROCESSING_WORKERS", default=2)
 DREAM_STALLED_MINUTES = env.int("DREAM_STALLED_MINUTES", default=10)
+
+# --- Compte administrateur créé au démarrage (commande ensure_admin) -----------------
+ADMIN_USERNAME = env("ADMIN_USERNAME", default="")
+ADMIN_EMAIL = env("ADMIN_EMAIL", default="")
+ADMIN_PASSWORD = env("ADMIN_PASSWORD", default="")
 
 # --- Supervision -------------------------------------------------------------------
 # Version déployée : Render fournit le commit Git dans RENDER_GIT_COMMIT.

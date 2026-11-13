@@ -90,13 +90,34 @@ uv run ruff format .         # formatage automatique
 uv run pytest                # tests + rapport de couverture (seuil minimal : 70 %)
 ```
 
+## Déploiement (Render)
+
+L'infrastructure est décrite dans [`render.yaml`](render.yaml) : un service web Docker et une base PostgreSQL, **hébergés à Francfort** (Union européenne, RGPD). La base n'est **pas accessible depuis Internet** (réseau privé Render uniquement).
+
+### Première mise en place
+1. Sur [render.com](https://render.com) : **New → Blueprint**, choisir ce dépôt, puis renseigner les secrets demandés (`OPENAI_API_KEY`, `ADMIN_USERNAME`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`).
+2. Dans le service web : **Settings → Deploy Hook**, copier l'URL.
+3. Dans GitHub : secret `RENDER_DEPLOY_HOOK_URL` (l'URL du hook) et variable `APP_URL` (l'adresse publique, par exemple `https://synthetiseur-de-reves.onrender.com`).
+
+### Déploiements suivants : automatiques
+À chaque merge sur `main`, la CI lance lint, tests et build Docker. **Si tout est vert**, elle déclenche le déploiement, puis vérifie que la nouvelle version répond sur `/health/` (comparaison du commit).
+
+### Particularités de l'offre gratuite
+| Limite | Conséquence | Parade |
+|---|---|---|
+| Disque éphémère | Les fichiers locaux sont effacés à chaque redémarrage | Audio et images stockés **dans PostgreSQL** (`MEDIA_STORAGE=database`) |
+| Mise en veille après 15 min d'inactivité | Premier chargement d'environ 1 min | Acceptable pour une démonstration |
+| Base gratuite valable 30 jours | Elle doit être recréée ensuite | À recréer avant la soutenance si besoin |
+| Pas de terminal sur le serveur | Impossible de lancer `createsuperuser` | Commande `ensure_admin` au démarrage (variables `ADMIN_*`) |
+
 ## Intégration continue
 
 À chaque push et à chaque Pull Request, GitHub Actions :
 1. vérifie le lint et le formatage ;
 2. lance les tests sur une vraie base PostgreSQL, avec contrôle de couverture ;
 3. vérifie la configuration de sécurité de production (`manage.py check --deploy`) ;
-4. construit l'image Docker.
+4. construit l'image Docker ;
+5. **sur `main` uniquement**, déploie sur Render et vérifie la mise en ligne de la nouvelle version.
 
 ---
 
