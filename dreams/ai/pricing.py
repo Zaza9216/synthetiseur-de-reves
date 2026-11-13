@@ -34,3 +34,28 @@ def transcription_cost(model: str, duration_seconds: float | None) -> Decimal:
     )
     rate = TRANSCRIPTION_USD_PER_MINUTE.get(model, Decimal("0.006"))
     return (minutes * rate).quantize(Decimal("0.000001"))
+
+
+# Modèles de langage : prix par million de jetons (entrée, sortie).
+CHAT_USD_PER_MILLION_TOKENS: dict[str, tuple[Decimal, Decimal]] = {
+    "gpt-4o-mini": (Decimal("0.15"), Decimal("0.60")),
+    "gpt-4o": (Decimal("2.50"), Decimal("10.00")),
+}
+
+
+def chat_cost(model: str, input_tokens: int, output_tokens: int) -> Decimal:
+    """Estime le coût d'un appel à un modèle de langage.
+
+    Args:
+        model: Nom du modèle.
+        input_tokens: Nombre de jetons envoyés.
+        output_tokens: Nombre de jetons générés.
+
+    Returns:
+        Le coût estimé en dollars US.
+    """
+    input_rate, output_rate = CHAT_USD_PER_MILLION_TOKENS.get(
+        model, (Decimal("2.50"), Decimal("10.00"))
+    )
+    cost = (input_tokens * input_rate + output_tokens * output_rate) / Decimal(1_000_000)
+    return cost.quantize(Decimal("0.000001"))

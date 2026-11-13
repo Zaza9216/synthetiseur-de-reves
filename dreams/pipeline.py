@@ -20,6 +20,7 @@ from django.conf import settings
 from django.db import close_old_connections, transaction
 from django.utils import timezone
 
+from dreams.ai.emotion import classify_dream_emotion
 from dreams.ai.errors import AIServiceError
 from dreams.ai.transcription import transcribe_dream
 from dreams.models import Dream, Status
@@ -50,12 +51,25 @@ def _run_transcription(dream: Dream) -> None:
     dream.transcription = transcribe_dream(dream)
 
 
+def _run_emotion(dream: Dream) -> None:
+    result = classify_dream_emotion(dream)
+    dream.emotion = result.emotion
+    dream.emotion_score = result.score
+    dream.emotion_method = result.method
+
+
 STEPS: tuple[Step, ...] = (
     Step(
         Status.TRANSCRIPTION,
         lambda d: bool(d.transcription),
         _run_transcription,
         ("transcription",),
+    ),
+    Step(
+        Status.ANALYSE,
+        lambda d: bool(d.emotion),
+        _run_emotion,
+        ("emotion", "emotion_score", "emotion_method"),
     ),
 )
 
