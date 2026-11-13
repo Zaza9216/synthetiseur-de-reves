@@ -67,6 +67,11 @@ Docker Compose lance l'application et une base PostgreSQL. L'application est dis
 | `CSRF_TRUSTED_ORIGINS` | Origines HTTPS de confiance | `https://mon-app.onrender.com` |
 | `DATABASE_URL` | Base de données (vide = SQLite) | `postgres://user:pass@host:5432/db` |
 | `LOG_LEVEL` | Niveau de logs | `INFO` |
+| `OPENAI_API_KEY` | Clé API OpenAI (transcription, émotion, image) | `sk-...` |
+| `TRANSCRIPTION_MODEL` | Modèle de transcription | `gpt-4o-transcribe` |
+| `DREAM_PROCESSING_MODE` | `thread` (arrière-plan), `sync` ou `off` | `thread` |
+| `DREAM_DAILY_LIMIT` | Rêves maximum par utilisateur et par jour | `10` |
+| `OPENAI_TIMEOUT` / `OPENAI_MAX_RETRIES` | Délai max par appel (s) / nouvelles tentatives | `60` / `2` |
 
 Le fichier `.env` n'est **jamais** commité.
 

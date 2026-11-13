@@ -129,6 +129,17 @@ DREAM_DAILY_LIMIT = env.int("DREAM_DAILY_LIMIT", default=10)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
 
+# --- Services d'IA -------------------------------------------------------------------
+OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
+OPENAI_TIMEOUT = env.float("OPENAI_TIMEOUT", default=60.0)  # secondes, par tentative
+OPENAI_MAX_RETRIES = env.int("OPENAI_MAX_RETRIES", default=2)
+TRANSCRIPTION_MODEL = env("TRANSCRIPTION_MODEL", default="gpt-4o-transcribe")
+
+# Traitement des rêves : "thread" (arrière-plan, par défaut), "sync" (immédiat), "off".
+DREAM_PROCESSING_MODE = env("DREAM_PROCESSING_MODE", default="thread")
+DREAM_PROCESSING_WORKERS = env.int("DREAM_PROCESSING_WORKERS", default=2)
+DREAM_STALLED_MINUTES = env.int("DREAM_STALLED_MINUTES", default=10)
+
 # --- Logs ------------------------------------------------------------------------
 LOGGING = {
     "version": 1,

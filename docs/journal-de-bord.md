@@ -90,3 +90,16 @@ Ce journal alimente le rapport technique et la code review.
   - un test d'interface doit vérifier la **structure**, pas seulement la présence d'un texte ;
   - une modification automatisée d'un fichier doit cibler une ancre **unique** ;
   - le test manuel dans un vrai navigateur reste indispensable : l'ajout de tests navigateur (Playwright) est une piste d'amélioration.
+
+### 📊 Benchmark : choix du modèle de transcription
+- **Protocole :** un même récit de rêve de 9 s, enregistré avec la synthèse vocale française de macOS, est transcrit par les trois modèles disponibles. La fidélité est mesurée par la similarité (`difflib.SequenceMatcher`) avec le texte de référence.
+
+| Modèle | Latence | Fidélité | Coût / min | Erreur notable |
+|---|---|---|---|---|
+| `gpt-4o-mini-transcribe` | 0,7 s | 86 % | 0,003 $ | « libre et **heureux** » → « libéré **de peur** » |
+| **`gpt-4o-transcribe`** | 1,0 s | **99 %** | 0,006 $ | aucune notable |
+| `whisper-1` | 1,8 s | 91 % | 0,006 $ | « je volais au-dessus » → « un gifle se desserse » |
+
+- **Décision :** `gpt-4o-transcribe`. L'erreur du modèle « mini » **inverse l'émotion** du rêve, ce qui fausserait la classification émotionnelle qui suit. Le surcoût (≈ 0,006 $ par rêve de 2 min) est négligeable face au budget.
+- **Configurable** avec la variable `TRANSCRIPTION_MODEL`, sans modifier le code.
+- **Test de bout en bout réel :** rêve envoyé, puis transcrit en 1,6 s, appel journalisé (0,00045 $), statut « terminé ».
