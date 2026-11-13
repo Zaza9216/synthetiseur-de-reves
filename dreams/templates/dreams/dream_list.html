@@ -1,50 +1,182 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Mes rêves · Synthétiseur de rêves{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
   <h1 class="h3 mb-0">Mes rêves</h1>
-  {% if page_obj %}<span class="text-secondary">{{ paginator.count }} rêve{{ paginator.count|pluralize }}</span>{% endif %}
+  <a href="{% url 'dreams:create' %}" class="btn btn-primary"><i class="bi bi-mic"></i> Raconter un rêve</a>
 </div>
 
-{% if dreams %}
-  <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
-    {% for dream in dreams %}
-      <div class="col">
-        <a href="{% url 'dreams:detail' dream.pk %}" class="card h-100 shadow-sm text-decoration-none text-reset">
-          {% include "dreams/includes/dream_visual.html" %}
-          <div class="card-body">
-            <p class="small text-secondary mb-1">{{ dream.created_at|date:"j F Y · H:i" }}</p>
-            <h2 class="h6 card-title">{{ dream.title }}</h2>
-            <div class="d-flex flex-wrap gap-1">
-              {% include "dreams/includes/emotion_badge.html" %}
-              {% include "dreams/includes/status_badge.html" %}
-            </div>
-          </div>
-        </a>
-      </div>
-    {% endfor %}
-  </div>
-
-  {% if is_paginated %}
-    <nav class="mt-4" aria-label="Pagination des rêves">
-      <ul class="pagination justify-content-center">
-        {% if page_obj.has_previous %}
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Précédent</a></li>
-        {% endif %}
-        <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} / {{ paginator.num_pages }}</span></li>
-        {% if page_obj.has_next %}
-          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Suivant</a></li>
-        {% endif %}
-      </ul>
-    </nav>
-  {% endif %}
-{% else %}
+{% if not has_any_dream %}
   <div class="text-center py-5 text-secondary">
     <i class="bi bi-moon display-1" aria-hidden="true"></i>
     <p class="lead mt-3">Vous n'avez encore raconté aucun rêve.</p>
     <a href="{% url 'dreams:create' %}" class="btn btn-primary btn-lg mt-2"><i class="bi bi-mic"></i> Raconter mon premier rêve</a>
   </div>
+{% else %}
+
+  {# --- Filtres ---------------------------------------------------------------- #}
+  <form method="get" class="card card-body shadow-sm mb-4" aria-label="Filtrer mes rêves">
+    {% if filter_form.non_field_errors %}
+      <div class="alert alert-danger py-2" role="alert">{{ filter_form.non_field_errors|join:" " }}</div>
+    {% endif %}
+    <div class="row g-2 align-items-end">
+      <div class="col-6 col-md-3">
+        <label for="id_start" class="form-label small mb-1">Du</label>
+        <input type="date" name="start" id="id_start" class="form-control form-control-sm"
+               value="{{ period_start|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+      </div>
+      <div class="col-6 col-md-3">
+        <label for="id_end" class="form-label small mb-1">Au</label>
+        <input type="date" name="end" id="id_end" class="form-control form-control-sm"
+               value="{{ period_end|date:'Y-m-d' }}" max="{{ today|date:'Y-m-d' }}">
+      </div>
+      <div class="col-12 col-md-3">
+        <label for="id_emotion" class="form-label small mb-1">Émotion</label>
+        <select name="emotion" id="id_emotion" class="form-select form-select-sm">
+          {% for value, label in filter_form.fields.emotion.choices %}
+            <option value="{{ value }}"{% if value == emotion_filter %} selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-md-3 d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-dark flex-grow-1"><i class="bi bi-funnel"></i> Filtrer</button>
+        <a href="{% url 'dreams:list' %}" class="btn btn-sm btn-outline-secondary" title="Réinitialiser les filtres">
+          <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Réinitialiser les filtres</span>
+        </a>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-1 mt-2 small">
+      <span class="text-secondary me-1">Période rapide :</span>
+      {% for label, start in presets %}
+        <a class="badge rounded-pill text-bg-light border text-decoration-none"
+           href="?start={{ start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}{% if emotion_filter %}&amp;emotion={{ emotion_filter }}{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+  </form>
+
+  {# --- Chiffres clés ----------------------------------------------------------- #}
+  <h2 class="visually-hidden">Statistiques de la période</h2>
+  <p class="small text-secondary mb-2">
+    Du {{ period_start|date:"j F Y" }} au {{ period_end|date:"j F Y" }}
+  </p>
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+      <div class="card card-body shadow-sm h-100">
+        <div class="small text-secondary">Rêves racontés</div>
+        <div class="fs-3 fw-bold" data-testid="stat-total">{{ stats.total }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card card-body shadow-sm h-100">
+        <div class="small text-secondary">Fréquence</div>
+        <div class="fs-3 fw-bold">{{ stats.per_week|floatformat:1 }} <span class="fs-6 fw-normal text-secondary">/ semaine</span></div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <div class="card card-body shadow-sm h-100">
+        <div class="small text-secondary">Émotion dominante</div>
+        {% if stats.dominant %}
+          <div class="fs-4 fw-bold text-{{ stats.dominant.color }}" data-testid="stat-dominant">
+            <i class="bi {{ stats.dominant.icon }}" aria-hidden="true"></i> {{ stats.dominant.label }}
+            <span class="fs-6 fw-normal text-secondary">· {{ stats.dominant.percent }} % des rêves analysés</span>
+          </div>
+        {% else %}
+          <div class="fs-5 text-secondary">Pas encore de rêve analysé</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {# --- Graphiques ---------------------------------------------------------------- #}
+  {% if stats.analysed %}
+    <div class="row g-3 mb-4">
+      <div class="col-lg-8">
+        <div class="card card-body shadow-sm h-100">
+          <h3 class="h6">Évolution de mes émotions (par {{ stats.timeline.granularity }})</h3>
+          <div style="position: relative; height: 260px;">
+            <canvas id="timeline-chart" role="img"
+                    aria-label="Graphique en barres empilées : nombre de rêves par {{ stats.timeline.granularity }} et par émotion"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="card card-body shadow-sm h-100">
+          <h3 class="h6">Répartition des émotions</h3>
+          <ul class="list-unstyled mb-0" data-testid="distribution">
+            {% for share in stats.distribution %}
+              <li class="mb-2">
+                <div class="d-flex justify-content-between small">
+                  <span><i class="bi {{ share.icon }} text-{{ share.color }}" aria-hidden="true"></i> {{ share.label }}</span>
+                  <span class="text-secondary">{{ share.count }} · {{ share.percent }} %</span>
+                </div>
+                <div class="progress" style="height: 6px;" role="progressbar" aria-label="{{ share.label }}"
+                     aria-valuenow="{{ share.percent }}" aria-valuemin="0" aria-valuemax="100">
+                  <div class="progress-bar" style="width: {{ share.percent }}%; background-color: {{ share.hex }};"></div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+    {{ stats.timeline|json_script:"timeline-data" }}
+  {% endif %}
+
+  {# --- Rêves ---------------------------------------------------------------------- #}
+  <div class="d-flex justify-content-between align-items-baseline mb-3">
+    <h2 class="h5 mb-0">
+      {% if emotion_filter %}Rêves « {% for value, label in filter_form.fields.emotion.choices %}{% if value == emotion_filter %}{{ label|lower }}{% endif %}{% endfor %} »{% else %}Tous les rêves de la période{% endif %}
+    </h2>
+    <span class="text-secondary small">{{ paginator.count }} rêve{{ paginator.count|pluralize }}</span>
+  </div>
+
+  {% if dreams %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-4">
+      {% for dream in dreams %}
+        <div class="col">
+          <a href="{% url 'dreams:detail' dream.pk %}" class="card h-100 shadow-sm text-decoration-none text-reset">
+            {% include "dreams/includes/dream_visual.html" %}
+            <div class="card-body">
+              <p class="small text-secondary mb-1">{{ dream.created_at|date:"j F Y · H:i" }}</p>
+              <h3 class="h6 card-title">{{ dream.title }}</h3>
+              <div class="d-flex flex-wrap gap-1">
+                {% include "dreams/includes/emotion_badge.html" %}
+                {% include "dreams/includes/status_badge.html" %}
+              </div>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+      <nav class="mt-4" aria-label="Pagination des rêves">
+        <ul class="pagination justify-content-center">
+          {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link" href="{% querystring page=page_obj.previous_page_number %}">Précédent</a></li>
+          {% endif %}
+          <li class="page-item disabled"><span class="page-link">Page {{ page_obj.number }} / {{ paginator.num_pages }}</span></li>
+          {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link" href="{% querystring page=page_obj.next_page_number %}">Suivant</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="text-center py-4 text-secondary">
+      <i class="bi bi-search display-6" aria-hidden="true"></i>
+      <p class="mt-2 mb-0">Aucun rêve ne correspond à ces filtres.</p>
+    </div>
+  {% endif %}
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+  {% if stats.analysed %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="{% static 'js/dashboard.js' %}" defer></script>
+  {% endif %}
 {% endblock %}

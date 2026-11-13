@@ -147,3 +147,18 @@ Ce journal alimente le rapport technique et la code review.
 
 - **Goulot d'étranglement :** la génération d'image représente 83 % du temps. D'où le traitement en arrière-plan avec une page de suivi.
 - **Projection budgétaire :** avec 10 rêves par jour (hypothèse de pré-production), ≈ 0,12 $ par jour, soit ≈ 3,60 $ par mois, très en dessous du plafond.
+
+---
+
+## Sprint 3 : tableau de bord, monitoring, déploiement
+
+### Décision : tableau de bord calculé par la base de données
+- **Choix :** les statistiques (répartition des émotions, évolution par semaine ou par mois) sont calculées par des requêtes d'agrégation (`COUNT … GROUP BY`, `TruncWeek` / `TruncMonth`), jamais en chargeant les rêves en mémoire.
+- **Pourquoi :** le temps de calcul reste constant quand l'historique grandit, et les index `(user, created_at)` et `(user, emotion)` créés au Sprint 1 servent directement ces requêtes.
+- **Granularité adaptative :** au-delà de 6 mois, le graphique est regroupé par mois pour rester lisible. Les périodes sans rêve sont complétées par des zéros, pour que l'axe du temps reste régulier.
+- **Filtres dans l'URL (GET) :** un tableau de bord filtré peut être mis en favori, et la pagination conserve les filtres (balise `{% querystring %}` de Django 5.2).
+- **Statistiques sur la période, grille filtrée par émotion :** filtrer « triste » ne doit pas transformer la répartition en « 100 % triste ». Les chiffres restent ceux de la période, seule la liste des rêves est filtrée.
+- **Données transmises au graphique** avec `json_script` : aucune requête supplémentaire et pas de risque d'injection de code dans la page.
+
+### Outil : données de démonstration
+- La commande `seed_demo_dreams` crée un utilisateur et des rêves réalistes répartis sur N semaines, **sans appel d'API** (coût nul). Elle sert pour la démo, la vidéo et le test de charge.

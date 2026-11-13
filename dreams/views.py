@@ -5,6 +5,7 @@ appartenant à quelqu'un d'autre renvoie une 404, sans révéler son existence.
 """
 
 import logging
+from datetime import timedelta
 from typing import Any
 
 from django.conf import settings
@@ -16,15 +17,17 @@ from django.forms import Form
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.views import View
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import DeleteView, DetailView, ListView
 
 from dreams.ai.budget import BUDGET_EXCEEDED_MESSAGE, is_budget_exceeded
-from dreams.forms import DreamCreateForm
+from dreams.forms import DreamCreateForm, DreamFilterForm
 from dreams.models import Dream, Status
 from dreams.pipeline import enqueue_dream, retry_dream
 from dreams.quotas import dreams_left_today
+from dreams.stats import compute_dashboard_stats, resolve_period
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +43,58 @@ class UserDreamsMixin(LoginRequiredMixin):
 
 
 class DreamListView(UserDreamsMixin, ListView):
-    """Historique paginé des rêves de l'utilisateur, du plus récent au plus ancien."""
+    """Tableau de bord : statistiques de la période et historique filtrable des rêves.
+
+    Les statistiques portent sur la période choisie (toutes émotions), pour que
+    la répartition reste lisible ; la grille des rêves applique aussi le filtre
+    d'émotion.
+    """
 
     template_name = "dreams/dream_list.html"
     context_object_name = "dreams"
     paginate_by = 9
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Valide les filtres avant de construire la page."""
+        self.filter_form = DreamFilterForm(request.GET or None)
+        filters = self.filter_form.cleaned_data if self.filter_form.is_valid() else {}
+        self.period = resolve_period(filters.get("start"), filters.get("end"))
+        self.emotion = filters.get("emotion", "")
+        return super().get(request, *args, **kwargs)
+
+    def period_queryset(self) -> QuerySet[Dream]:
+        """Rêves de l'utilisateur sur la période choisie."""
+        start, end = self.period
+        return super().get_queryset().filter(created_at__date__gte=start, created_at__date__lte=end)
+
+    def get_queryset(self) -> QuerySet[Dream]:
+        """Rêves de la période, filtrés par émotion si demandé."""
+        dreams = self.period_queryset()
+        if self.emotion:
+            dreams = dreams.filter(emotion=self.emotion)
+        return dreams
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        """Ajoute le formulaire de filtres, la période et les statistiques."""
+        context = super().get_context_data(**kwargs)
+        start, end = self.period
+        today = timezone.localdate()
+        context.update(
+            filter_form=self.filter_form,
+            period_start=start,
+            period_end=end,
+            emotion_filter=self.emotion,
+            stats=compute_dashboard_stats(self.period_queryset(), start, end),
+            has_any_dream=Dream.objects.filter(user=self.request.user).exists(),
+            presets=[
+                ("7 jours", today - timedelta(days=6)),
+                ("30 jours", today - timedelta(days=29)),
+                ("12 semaines", today - timedelta(days=83)),
+                ("12 mois", today - timedelta(days=364)),
+            ],
+            today=today,
+        )
+        return context
 
 
 class DreamDetailView(UserDreamsMixin, DetailView):
