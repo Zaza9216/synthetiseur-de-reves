@@ -29,6 +29,13 @@ class Emotion(models.TextChoices):
     NEUTRE = "neutre", "Neutre"
 
 
+class EmotionMethod(models.TextChoices):
+    """Méthode ayant déterminé l'émotion d'un rêve."""
+
+    IA = "ia", "Intelligence artificielle"
+    LEXIQUE = "lexique", "Analyse de secours (lexique)"
+
+
 class EmotionStyle(NamedTuple):
     """Apparence d'une émotion dans l'interface."""
 
@@ -109,6 +116,9 @@ class Dream(models.Model):
         blank=True,
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)],
         help_text="Score de confiance du classifieur, entre 0 et 1.",
+    )
+    emotion_method = models.CharField(
+        "méthode d'analyse", max_length=10, choices=EmotionMethod.choices, blank=True
     )
     image = models.FileField("image générée", upload_to=image_upload_path, blank=True)
     image_prompt = models.TextField("prompt de l'image", blank=True)

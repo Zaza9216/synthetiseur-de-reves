@@ -134,6 +134,7 @@ OPENAI_API_KEY = env("OPENAI_API_KEY", default="")
 OPENAI_TIMEOUT = env.float("OPENAI_TIMEOUT", default=60.0)  # secondes, par tentative
 OPENAI_MAX_RETRIES = env.int("OPENAI_MAX_RETRIES", default=2)
 TRANSCRIPTION_MODEL = env("TRANSCRIPTION_MODEL", default="gpt-4o-transcribe")
+EMOTION_MODEL = env("EMOTION_MODEL", default="gpt-4o-mini")
 
 # Traitement des rêves : "thread" (arrière-plan, par défaut), "sync" (immédiat), "off".
 DREAM_PROCESSING_MODE = env("DREAM_PROCESSING_MODE", default="thread")

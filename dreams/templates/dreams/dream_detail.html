@@ -26,6 +26,12 @@
       {% include "dreams/includes/emotion_badge.html" %}
       {% include "dreams/includes/status_badge.html" %}
     </div>
+    {% if dream.emotion_method == "lexique" %}
+      <p class="small text-secondary mt-n3 mb-4">
+        <i class="bi bi-info-circle" aria-hidden="true"></i>
+        Émotion estimée par l'analyse de secours (service d'IA momentanément indisponible).
+      </p>
+    {% endif %}
 
     {% if dream.can_retry %}
       <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert">
