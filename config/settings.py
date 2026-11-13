@@ -8,6 +8,7 @@ d'environnement ou un fichier ``.env`` local, jamais écrites en dur.
 from pathlib import Path
 
 import environ
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -33,8 +34,9 @@ if RENDER_EXTERNAL_HOSTNAME:
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    # Cookies réservés à HTTPS (désactivable uniquement pour un test de charge local en HTTP).
+    SESSION_COOKIE_SECURE = env.bool("SECURE_COOKIES", default=True)
+    CSRF_COOKIE_SECURE = env.bool("SECURE_COOKIES", default=True)
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
     SECURE_REDIRECT_EXEMPT = [r"^health/$"]  # la sonde de l'hébergeur appelle en HTTP
@@ -154,6 +156,11 @@ EMOTION_MODEL = env("EMOTION_MODEL", default="gpt-4o-mini")
 IMAGE_MODEL = env("IMAGE_MODEL", default="gpt-image-1-mini")
 IMAGE_QUALITY = env("IMAGE_QUALITY", default="medium")  # low | medium | high
 IMAGE_TIMEOUT = env.float("IMAGE_TIMEOUT", default=120.0)  # la génération est plus lente
+# "openai" (réel) ou "fake" (services simulés, pour les tests de charge uniquement).
+AI_BACKEND = env("AI_BACKEND", default="openai")
+AI_FAKE_LATENCY_SCALE = env.float("AI_FAKE_LATENCY_SCALE", default=1.0)
+if AI_BACKEND == "fake" and RENDER_EXTERNAL_HOSTNAME:
+    raise ImproperlyConfigured("AI_BACKEND=fake est interdit en production.")
 # Plafond de dépenses IA par mois (dollars US), sous le budget de 20 € du projet.
 AI_MONTHLY_BUDGET_USD = env.float("AI_MONTHLY_BUDGET_USD", default=15.0)
 

@@ -203,3 +203,11 @@ Ce journal alimente le rapport technique et la code review.
 - **Accessibilité vérifiée :** contraste WCAG **AA** pour toutes les couleurs de texte (de 6,3:1 à 15:1) ; focus clavier visible ; animations désactivées si l'utilisateur préfère réduire les mouvements ; libellés pour lecteurs d'écran sur les boutons réduits à une icône.
 - **Méthode :** captures automatiques avant/après, sur ordinateur et sur mobile (Playwright, `scripts/captures.py`). Elles ont révélé trois défauts corrigés avant la PR : barre de navigation débordante sur mobile, fond gris sous la ligne de flottaison, éléments de la supervision illisibles sur fond sombre.
 - **Captures :** `docs/captures/avant-*.jpg` et `docs/captures/apres-*.jpg`.
+
+### 📊 Test de charge (#14)
+- **Outil :** Locust, avec un scénario réaliste (inscription, tableau de bord, détail, envoi d'un rêve et suivi toutes les 2 s). Serveur dans des conditions proches de la production : Gunicorn, PostgreSQL 16 lancé localement **sans droits administrateur** (`pgserver`), stockage en base. IA **simulée** avec les latences réelles (`AI_BACKEND=fake`, interdit en production).
+- **Goulot d'étranglement identifié :** la file de traitement des rêves. À 50 utilisateurs, avec 4 traitements en parallèle, un rêve complet prend 56 s (p50) alors que les pages restent à 23 ms (p95).
+- **Optimisation mesurée :** 8 fils de traitement par processus. Rêve complet en **12 s** à 50 utilisateurs, et **0 erreur à 150 utilisateurs** pour 1,2 rêve par seconde, avec 194 Mo de mémoire.
+- **🐞 Défaut révélé :** des erreurs `Connection reset` dues au délai de 2 s de Gunicorn sur les connexions inactives. Corrigé avec `--keep-alive 75`.
+- **Production :** `DREAM_PROCESSING_WORKERS=4` (8 traitements en parallèle), pour rester compatible avec les limites de débit d'OpenAI.
+- Détails complets : `docs/test-de-charge.md`.
