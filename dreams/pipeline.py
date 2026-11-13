@@ -20,6 +20,7 @@ from django.conf import settings
 from django.db import close_old_connections, transaction
 from django.utils import timezone
 
+from dreams.ai import fake
 from dreams.ai.emotion import classify_dream_emotion
 from dreams.ai.errors import AIServiceError
 from dreams.ai.image import generate_dream_image
@@ -51,19 +52,24 @@ class Step:
     optional: bool = False
 
 
+def _use_fake_ai() -> bool:
+    """Indique si les services d'IA simulés (tests de charge) sont activés."""
+    return settings.AI_BACKEND == "fake"
+
+
 def _run_transcription(dream: Dream) -> None:
-    dream.transcription = transcribe_dream(dream)
+    dream.transcription = fake.fake_transcribe(dream) if _use_fake_ai() else transcribe_dream(dream)
 
 
 def _run_emotion(dream: Dream) -> None:
-    result = classify_dream_emotion(dream)
+    result = fake.fake_classify(dream) if _use_fake_ai() else classify_dream_emotion(dream)
     dream.emotion = result.emotion
     dream.emotion_score = result.score
     dream.emotion_method = result.method
 
 
 def _run_image(dream: Dream) -> None:
-    image, prompt = generate_dream_image(dream)
+    image, prompt = fake.fake_image(dream) if _use_fake_ai() else generate_dream_image(dream)
     dream.image.save(image.name, image, save=False)
     dream.image_prompt = prompt
 

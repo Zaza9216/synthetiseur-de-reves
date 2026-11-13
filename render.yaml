@@ -26,6 +26,8 @@ services:
         value: database
       - key: DREAM_PROCESSING_MODE
         value: thread
+      - key: DREAM_PROCESSING_WORKERS   # 4 × 2 processus = 8 rêves en parallèle (test de charge)
+        value: "4"
       - key: AI_MONTHLY_BUDGET_USD
         value: "15"
       - key: WEB_CONCURRENCY
