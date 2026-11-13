@@ -1,5 +1,10 @@
 # 🌙 Synthétiseur de rêves
 
+[![CI](https://github.com/Zaza9216/synthetiseur-de-reves/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Zaza9216/synthetiseur-de-reves/actions/workflows/ci.yml)
+
+**🔗 Application en ligne : https://synthetiseur-de-reves.onrender.com**
+*(offre gratuite : le premier chargement après une période d'inactivité peut prendre environ 1 minute)*
+
 Application web qui transforme un rêve raconté à voix haute en souvenir illustré :
 
 1. **Enregistrement** du rêve au micro, directement dans le navigateur
