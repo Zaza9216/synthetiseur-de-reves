@@ -37,21 +37,28 @@ class EmotionMethod(models.TextChoices):
 
 
 class EmotionStyle(NamedTuple):
-    """Apparence d'une émotion dans l'interface."""
+    """Apparence d'une émotion dans l'interface.
+
+    Attributes:
+        icon: Classe d'icône Bootstrap Icons.
+        color: Couleur Bootstrap (badges, fonds).
+        hex: Même couleur en hexadécimal (graphiques).
+    """
 
     icon: str
     color: str
+    hex: str
 
 
 EMOTION_STYLES: dict[str, EmotionStyle] = {
-    Emotion.HEUREUX: EmotionStyle("bi-emoji-laughing", "success"),
-    Emotion.STRESSANT: EmotionStyle("bi-lightning-charge", "danger"),
-    Emotion.TRISTE: EmotionStyle("bi-cloud-drizzle", "primary"),
-    Emotion.COLERE: EmotionStyle("bi-fire", "warning"),
-    Emotion.SURPRENANT: EmotionStyle("bi-stars", "info"),
-    Emotion.NEUTRE: EmotionStyle("bi-emoji-neutral", "secondary"),
+    Emotion.HEUREUX: EmotionStyle("bi-emoji-laughing", "success", "#198754"),
+    Emotion.STRESSANT: EmotionStyle("bi-lightning-charge", "danger", "#dc3545"),
+    Emotion.TRISTE: EmotionStyle("bi-cloud-drizzle", "primary", "#0d6efd"),
+    Emotion.COLERE: EmotionStyle("bi-fire", "warning", "#fd7e14"),
+    Emotion.SURPRENANT: EmotionStyle("bi-stars", "info", "#0dcaf0"),
+    Emotion.NEUTRE: EmotionStyle("bi-emoji-neutral", "secondary", "#6c757d"),
 }
-UNKNOWN_EMOTION_STYLE = EmotionStyle("bi-question-circle", "light")
+UNKNOWN_EMOTION_STYLE = EmotionStyle("bi-question-circle", "light", "#adb5bd")
 
 
 class Status(models.TextChoices):
