@@ -176,9 +176,17 @@ class Dream(models.Model):
         return timezone.now() - self.updated_at > limit
 
     @property
+    def is_missing_image(self) -> bool:
+        """Indique si le rêve est terminé mais sans image (génération échouée)."""
+        return self.status == Status.TERMINE and not self.image
+
+    @property
     def can_retry(self) -> bool:
-        """Indique si l'utilisateur peut relancer le traitement du rêve."""
-        return self.status == Status.ECHEC or self.is_stalled
+        """Indique si l'utilisateur peut relancer le traitement du rêve.
+
+        C'est le cas après un échec, un blocage, ou une image manquante.
+        """
+        return self.status == Status.ECHEC or self.is_stalled or self.is_missing_image
 
     @property
     def emotion_percent(self) -> int | None:

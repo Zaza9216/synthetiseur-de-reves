@@ -22,6 +22,7 @@ from django.utils import timezone
 
 from dreams.ai.emotion import classify_dream_emotion
 from dreams.ai.errors import AIServiceError
+from dreams.ai.image import generate_dream_image
 from dreams.ai.transcription import transcribe_dream
 from dreams.models import Dream, Status
 
@@ -39,12 +40,15 @@ class Step:
         is_done: Indique si le résultat de l'étape est déjà présent sur le rêve.
         run: Exécute l'étape et enregistre son résultat sur le rêve (sans sauvegarder).
         fields: Champs du rêve modifiés par l'étape, sauvegardés à la fin de l'étape.
+        optional: Si ``True``, un échec de l'étape n'empêche pas de terminer le
+            rêve : il est signalé à l'utilisateur, qui peut relancer l'étape.
     """
 
     status: Status
     is_done: Callable[[Dream], bool]
     run: Callable[[Dream], None]
     fields: tuple[str, ...]
+    optional: bool = False
 
 
 def _run_transcription(dream: Dream) -> None:
@@ -56,6 +60,12 @@ def _run_emotion(dream: Dream) -> None:
     dream.emotion = result.emotion
     dream.emotion_score = result.score
     dream.emotion_method = result.method
+
+
+def _run_image(dream: Dream) -> None:
+    image, prompt = generate_dream_image(dream)
+    dream.image.save(image.name, image, save=False)
+    dream.image_prompt = prompt
 
 
 STEPS: tuple[Step, ...] = (
@@ -70,6 +80,13 @@ STEPS: tuple[Step, ...] = (
         lambda d: bool(d.emotion),
         _run_emotion,
         ("emotion", "emotion_score", "emotion_method"),
+    ),
+    Step(
+        Status.GENERATION,
+        lambda d: bool(d.image),
+        _run_image,
+        ("image", "image_prompt"),
+        optional=True,
     ),
 )
 
@@ -113,21 +130,36 @@ def process_dream(dream_id: int) -> None:
         logger.info("Rêve %s déjà en cours de traitement ou introuvable : ignoré", dream_id)
         return
 
-    dream = Dream.objects.get(pk=dream_id)
+    dream = Dream.objects.filter(pk=dream_id).first()
+    if dream is None:
+        return
     logger.info("Début du traitement du rêve %s", dream_id)
+    warnings: list[str] = []
     try:
         for step in STEPS:
             if step.is_done(dream):
                 continue
             dream.status = step.status
             _save(dream, "status")
-            step.run(dream)
+            try:
+                step.run(dream)
+            except AIServiceError as error:
+                if not step.optional:
+                    raise
+                logger.warning(
+                    "Rêve %s : étape facultative %s échouée : %s", dream_id, step.status, error
+                )
+                warnings.append(error.user_message)
+                continue
             _save(dream, *step.fields)
         dream.status = Status.TERMINE
         dream.processed_at = timezone.now()
-        _save(dream, "status", "processed_at")
+        dream.error_message = " ".join(warnings)
+        _save(dream, "status", "processed_at", "error_message")
     except DreamDeletedError:
         logger.info("Rêve %s supprimé pendant son traitement : arrêt", dream_id)
+        if dream.image:  # fichier créé pendant ce traitement, désormais orphelin
+            dream.image.storage.delete(dream.image.name)
         return
     except AIServiceError as error:
         logger.warning("Rêve %s en échec à l'étape %s : %s", dream_id, dream.status, error)

@@ -52,6 +52,7 @@ def test_client_without_api_key_raises(settings: Settings) -> None:
 
 
 def test_client_is_configured_and_reused(settings: Settings) -> None:
+    settings.OPENAI_API_KEY = "sk-test"
     settings.OPENAI_TIMEOUT = 12.0
     settings.OPENAI_MAX_RETRIES = 3
 

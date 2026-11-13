@@ -135,6 +135,11 @@ OPENAI_TIMEOUT = env.float("OPENAI_TIMEOUT", default=60.0)  # secondes, par tent
 OPENAI_MAX_RETRIES = env.int("OPENAI_MAX_RETRIES", default=2)
 TRANSCRIPTION_MODEL = env("TRANSCRIPTION_MODEL", default="gpt-4o-transcribe")
 EMOTION_MODEL = env("EMOTION_MODEL", default="gpt-4o-mini")
+IMAGE_MODEL = env("IMAGE_MODEL", default="gpt-image-1-mini")
+IMAGE_QUALITY = env("IMAGE_QUALITY", default="medium")  # low | medium | high
+IMAGE_TIMEOUT = env.float("IMAGE_TIMEOUT", default=120.0)  # la génération est plus lente
+# Plafond de dépenses IA par mois (dollars US), sous le budget de 20 € du projet.
+AI_MONTHLY_BUDGET_USD = env.float("AI_MONTHLY_BUDGET_USD", default=15.0)
 
 # Traitement des rêves : "thread" (arrière-plan, par défaut), "sync" (immédiat), "off".
 DREAM_PROCESSING_MODE = env("DREAM_PROCESSING_MODE", default="thread")

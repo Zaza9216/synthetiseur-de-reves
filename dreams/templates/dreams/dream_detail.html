@@ -33,7 +33,18 @@
       </p>
     {% endif %}
 
-    {% if dream.can_retry %}
+    {% if dream.is_missing_image %}
+      <div class="alert alert-warning d-flex flex-wrap align-items-center justify-content-between gap-2" role="status">
+        <span>
+          <i class="bi bi-image" aria-hidden="true"></i>
+          {{ dream.error_message|default:"L'image de ce rêve n'est pas disponible." }}
+        </span>
+        <form method="post" action="{% url 'dreams:retry' dream.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-dark"><i class="bi bi-magic"></i> Régénérer l'image</button>
+        </form>
+      </div>
+    {% elif dream.can_retry %}
       <div class="alert alert-danger d-flex flex-wrap align-items-center justify-content-between gap-2" role="alert">
         <span>
           <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
