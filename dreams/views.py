@@ -60,6 +60,7 @@ class DreamListView(UserDreamsMixin, ListView):
         filters = self.filter_form.cleaned_data if self.filter_form.is_valid() else {}
         self.period = resolve_period(filters.get("start"), filters.get("end"))
         self.emotion = filters.get("emotion", "")
+        self.search = filters.get("q", "")
         return super().get(request, *args, **kwargs)
 
     def period_queryset(self) -> QuerySet[Dream]:
@@ -72,6 +73,8 @@ class DreamListView(UserDreamsMixin, ListView):
         dreams = self.period_queryset()
         if self.emotion:
             dreams = dreams.filter(emotion=self.emotion)
+        if self.search:
+            dreams = dreams.filter(transcription__icontains=self.search)
         return dreams
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -84,6 +87,7 @@ class DreamListView(UserDreamsMixin, ListView):
             period_start=start,
             period_end=end,
             emotion_filter=self.emotion,
+            search=self.search,
             stats=compute_dashboard_stats(self.period_queryset(), start, end),
             has_any_dream=Dream.objects.filter(user=self.request.user).exists(),
             presets=[

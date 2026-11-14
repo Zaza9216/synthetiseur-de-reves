@@ -54,6 +54,8 @@
     if (!AudioCtx || !waveform) return;
     show(waveform, true);
     audioContext = new AudioCtx();
+    // Safari iOS crée le contexte « en pause » s'il n'est pas lancé par le geste lui-même.
+    if (audioContext.state === "suspended") audioContext.resume().catch(() => {});
     const analyser = audioContext.createAnalyser();
     analyser.fftSize = 1024;
     audioContext.createMediaStreamSource(mediaStream).connect(analyser);

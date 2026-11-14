@@ -238,3 +238,10 @@ Ce journal alimente le rapport technique et la code review.
 - **Effacement (art. 17) :** suppression du compte confirmée par le mot de passe. La cascade supprime les rêves, et le signal `post_delete` créé au Sprint 1 efface tous les fichiers (testé).
 - **Information (art. 13) :** page « Confidentialité » qui détaille les données traitées, les finalités, les sous-traitants (OpenAI aux États-Unis, Render à Francfort), la durée de conservation, les droits et la CNIL. Elle est liée depuis le pied de page et l'inscription.
 - **Note :** les journaux techniques ne contiennent jamais le contenu des rêves, seulement des identifiants. C'est un choix fait dès le Sprint 2.
+
+### Recherche, application installable et Safari (#39)
+- **Recherche** dans les récits depuis le tableau de bord (`icontains`), combinable avec la période et l'émotion, et conservée dans la pagination.
+- **Application installable (PWA) :** manifeste, icônes générées à partir d'un SVG (lune sur ciel de nuit, version « maskable » pour Android), balises iOS (plein écran, barre d'état translucide, encoche gérée par `env(safe-area-inset-top)`). Usage visé : le matin au réveil, téléphone en main, depuis l'écran d'accueil.
+- **Service worker volontairement minimal :** il ne met en cache que la page « hors ligne », la feuille de style et une icône. **Les pages personnelles ne sont jamais mises en cache** (testé), car un cache local de rêves serait une fuite de données sur un téléphone partagé. Il est servi depuis la racine (`/sw.js`, en-tête `Service-Worker-Allowed`) et toujours revalidé, pour que chaque déploiement soit pris en compte.
+- **Safari iOS :** le contexte audio de la visualisation est relancé s'il démarre en pause.
+- **Vérification navigateur :** service worker enregistré, manifeste lu, **aucune erreur ni violation CSP** sur 8 pages.

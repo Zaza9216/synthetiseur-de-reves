@@ -60,6 +60,7 @@ class DreamFilterForm(forms.Form):
     end = forms.DateField(
         label="Au", required=False, widget=forms.DateInput(attrs={"type": "date"})
     )
+    q = forms.CharField(label="Rechercher", required=False, max_length=100, strip=True)
     emotion = forms.ChoiceField(
         label="Émotion",
         required=False,

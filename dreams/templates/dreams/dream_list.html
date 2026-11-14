@@ -23,6 +23,14 @@
       <div class="alert alert-danger py-2" role="alert">{{ filter_form.non_field_errors|join:" " }}</div>
     {% endif %}
     <div class="row g-2 align-items-end">
+      <div class="col-12">
+        <label for="id_q" class="visually-hidden">Rechercher dans mes rêves</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text bg-transparent border-end-0"><i class="bi bi-search" aria-hidden="true"></i></span>
+          <input type="search" name="q" id="id_q" class="form-control border-start-0" value="{{ search }}"
+                 placeholder="Rechercher dans mes rêves (ex. : chat, mer, examen…)" maxlength="100">
+        </div>
+      </div>
       <div class="col-6 col-md-3">
         <label for="id_start" class="form-label small mb-1">Du</label>
         <input type="date" name="start" id="id_start" class="form-control form-control-sm"
@@ -52,7 +60,7 @@
       <span class="text-secondary me-1">Période rapide :</span>
       {% for label, start in presets %}
         <a class="badge rounded-pill preset-pill text-decoration-none"
-           href="?start={{ start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}{% if emotion_filter %}&amp;emotion={{ emotion_filter }}{% endif %}">{{ label }}</a>
+           href="?start={{ start|date:'Y-m-d' }}&amp;end={{ today|date:'Y-m-d' }}{% if emotion_filter %}&amp;emotion={{ emotion_filter }}{% endif %}{% if search %}&amp;q={{ search|urlencode }}{% endif %}">{{ label }}</a>
       {% endfor %}
     </div>
   </form>
@@ -128,7 +136,7 @@
   {# --- Rêves ---------------------------------------------------------------------- #}
   <div class="d-flex justify-content-between align-items-baseline mb-3">
     <h2 class="h5 mb-0">
-      {% if emotion_filter %}Rêves « {% for value, label in filter_form.fields.emotion.choices %}{% if value == emotion_filter %}{{ label|lower }}{% endif %}{% endfor %} »{% else %}Tous les rêves de la période{% endif %}
+      {% if search %}Rêves contenant « {{ search }} »{% if emotion_filter %} · {% for value, label in filter_form.fields.emotion.choices %}{% if value == emotion_filter %}{{ label|lower }}{% endif %}{% endfor %}{% endif %}{% elif emotion_filter %}Rêves « {% for value, label in filter_form.fields.emotion.choices %}{% if value == emotion_filter %}{{ label|lower }}{% endif %}{% endfor %} »{% else %}Tous les rêves de la période{% endif %}
     </h2>
     <span class="text-secondary small">{{ paginator.count }} rêve{{ paginator.count|pluralize }}</span>
   </div>
