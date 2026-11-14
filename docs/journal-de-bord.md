@@ -285,7 +285,7 @@ Ce journal alimente le rapport technique et la code review.
   - inscription refusée si l'identifiant existe déjà avec une autre casse ;
   - compteur anti-force brute normalisé en minuscules (sinon `Bob` et `bob` auraient chacun 5 essais) ;
   - `autocapitalize="none"`, `autocorrect="off"` et `spellcheck="false"` sur les champs identifiant.
-- **Tests :** 16 tests unitaires et 1 test navigateur sur les 3 profils (inscription « Lune », connexion « lune »).
+- **Tests :** 14 tests unitaires et 1 test navigateur sur les 3 profils (inscription « Lune », connexion « lune »).
 - **Leçon :** une mesure de sécurité (blocage après 5 échecs) peut amplifier un défaut d'ergonomie. Il faut tester les parcours sur les vrais appareils des utilisateurs.
 
 ### Mise en veille Render : un appel planifié GitHub ne suffit pas
