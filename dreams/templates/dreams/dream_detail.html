@@ -26,6 +26,12 @@
       {% include "dreams/includes/emotion_badge.html" %}
       {% include "dreams/includes/status_badge.html" %}
     </div>
+    {% if dream.status == "termine" and dream.transcription %}
+      <button type="button" class="btn btn-primary rounded-pill px-4 mb-4" id="relive-button">
+        <i class="bi bi-play-circle" aria-hidden="true"></i> Revivre mon rêve
+        <span class="small fw-normal d-block d-sm-inline opacity-75"><span class="d-none d-sm-inline">· </span>image animée et ambiance sonore</span>
+      </button>
+    {% endif %}
     {% if dream.emotion_method == "lexique" %}
       <p class="small text-secondary mt-n3 mb-4">
         <i class="bi bi-info-circle" aria-hidden="true"></i>
@@ -132,8 +138,31 @@
     </form>
   </div>
 </div>
+
+{# Mode immersif « Revivre mon rêve » : micro-vidéo (image animée + récit) et ambiance sonore. #}
+{% if dream.status == "termine" and dream.transcription %}
+<div class="relive" id="relive-overlay" role="dialog" aria-modal="true" aria-label="Revivre mon rêve" hidden
+     data-emotion="{{ dream.emotion|default:'neutre' }}" data-story="{{ dream.transcription }}"
+     style="--emo: {{ dream.emotion_style.hex }}">
+  <div class="relive-scene">
+    {% if dream.image %}
+      <img src="{{ dream.image.url }}" alt="" class="relive-image">
+    {% else %}
+      <div class="relive-image dream-placeholder" style="--emo: {{ dream.emotion_style.hex }}"></div>
+    {% endif %}
+  </div>
+  <p class="relive-caption" id="relive-caption" aria-live="polite"></p>
+  <div class="relive-controls">
+    <button type="button" class="btn btn-ghost rounded-circle" id="relive-sound" aria-pressed="true"></button>
+    <button type="button" class="btn btn-ghost rounded-circle" id="relive-close">
+      <i class="bi bi-x-lg" aria-hidden="true"></i><span class="visually-hidden">Fermer</span>
+    </button>
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_js %}
+  {% if dream.status == "termine" and dream.transcription %}<script src="{% static 'js/ambience.js' %}" defer></script>{% endif %}
   {% if dream.is_processing and not dream.is_stalled %}<script src="{% static 'js/dream-status.js' %}" defer></script>{% endif %}
 {% endblock %}

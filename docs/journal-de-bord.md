@@ -245,3 +245,16 @@ Ce journal alimente le rapport technique et la code review.
 - **Service worker volontairement minimal :** il ne met en cache que la page « hors ligne », la feuille de style et une icône. **Les pages personnelles ne sont jamais mises en cache** (testé), car un cache local de rêves serait une fuite de données sur un téléphone partagé. Il est servi depuis la racine (`/sw.js`, en-tête `Service-Worker-Allowed`) et toujours revalidé, pour que chaque déploiement soit pris en compte.
 - **Safari iOS :** le contexte audio de la visualisation est relancé s'il démarre en pause.
 - **Vérification navigateur :** service worker enregistré, manifeste lu, **aucune erreur ni violation CSP** sur 8 pages.
+
+### Bonus du sujet : « Revivre mon rêve », micro-vidéo et ambiance sonore (#17)
+- **Choix :** générer la micro-vidéo et le son **dans le navigateur** plutôt qu'avec des API vidéo ou audio payantes.
+  - *Micro-vidéo :* l'illustration en plein écran est animée par un lent zoom et un panoramique (effet « Ken Burns », CSS), le récit défile phrase par phrase en sous-titres, et un voile prend la couleur de l'émotion.
+  - *Ambiance sonore :* synthèse en direct avec la **Web Audio API**. Une nappe d'accords désaccordés passe dans un filtre qui « respire », complétée par une texture de bruit filtré (vent, pluie, grondement), des cloches aléatoires, un tremolo pour les rêves tendus et un écho pour l'espace.
+  - Chaque émotion a sa signature : majeur lumineux pour heureux, dissonance grave et pulsée pour stressant, mineur étouffé pour triste, quarte augmentée et scintillements pour surprenant…
+- **Pourquoi :** coût nul (le budget reste dédié à la transcription, à l'émotion et à l'image), aucun droit d'auteur, aucun fichier à stocker, et une démo marquante.
+- **Contraintes respectées :**
+  - Safari iOS : le contexte audio est créé **dans le geste de l'utilisateur** (clic) ;
+  - le son apparaît et disparaît en fondu, il est coupable, et la touche Échap ferme le mode ;
+  - pas d'animation si l'utilisateur préfère réduire les mouvements ;
+  - le récit est échappé dans le HTML (testé avec une balise `<script>`).
+- **🐞 Défaut corrigé avant la PR :** la fenêtre plein écran passait **sous** le pied de page, car `main` créait un plan d'empilement (`z-index: 1`). Le contenu reste au-dessus du ciel étoilé sans `z-index`.
