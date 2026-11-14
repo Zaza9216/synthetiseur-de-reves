@@ -29,7 +29,7 @@ def signup(request: HttpRequest) -> HttpResponse:
     form = SignUpForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         user = form.save()
-        login(request, user)
+        login(request, user, backend="django.contrib.auth.backends.ModelBackend")
         logger.info("Nouvel utilisateur inscrit (id=%s)", user.pk)
         messages.success(request, f"Bienvenue {user.username} ! Votre compte est créé.")
         return redirect(settings.LOGIN_REDIRECT_URL)

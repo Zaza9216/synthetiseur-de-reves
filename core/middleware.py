@@ -59,3 +59,18 @@ class RequestTimingMiddleware:
                 extra={"duration_ms": round(duration_ms), "status": response.status_code},
             )
         return response
+
+
+class SecurityHeadersMiddleware:
+    """Ajoute les en-têtes Content-Security-Policy et Permissions-Policy à chaque réponse."""
+
+    def __init__(self, get_response: Callable[[HttpRequest], HttpResponse]) -> None:
+        """Mémorise le maillon suivant de la chaîne de middlewares."""
+        self.get_response = get_response
+
+    def __call__(self, request: HttpRequest) -> HttpResponse:
+        """Complète la réponse avec les politiques de sécurité, sans écraser l'existant."""
+        response = self.get_response(request)
+        response.headers.setdefault("Content-Security-Policy", settings.CONTENT_SECURITY_POLICY)
+        response.headers.setdefault("Permissions-Policy", settings.PERMISSIONS_POLICY)
+        return response

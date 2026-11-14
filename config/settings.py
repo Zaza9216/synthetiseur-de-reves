@@ -5,6 +5,7 @@ mode debug, base de données, clés API) sont lues depuis les variables
 d'environnement ou un fichier ``.env`` local, jamais écrites en dur.
 """
 
+from datetime import timedelta
 from pathlib import Path
 
 import environ
@@ -54,6 +55,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "axes",
     # Applications du projet
     "core",
     "accounts",
@@ -71,6 +73,9 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "core.middleware.SecurityHeadersMiddleware",
+    # Doit rester en dernier : bloque les tentatives de connexion répétées.
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -102,6 +107,23 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- Authentification ----------------------------------------------------------
 AUTH_USER_MODEL = "accounts.User"
+AUTHENTICATION_BACKENDS = [
+    # Vérifie d'abord que le compte / l'adresse IP n'est pas bloqué (force brute).
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# Protection contre la force brute (django-axes) : 5 échecs pour un même identifiant
+# depuis une même adresse IP → blocage 15 minutes.
+AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=5)
+AXES_COOLOFF_TIME = timedelta(minutes=15)
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_RESET_ON_SUCCESS = True
+AXES_LOCKOUT_TEMPLATE = "registration/lockout.html"
+# Adresse réelle du visiteur derrière le proxy de Render (voir core/security.py).
+AXES_CLIENT_IP_CALLABLE = "core.security.client_ip"
+# Nombre de proxys de confiance devant l'application (1 : le répartiteur de Render).
+TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=1)
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "dreams:list"
 LOGOUT_REDIRECT_URL = "core:home"
@@ -168,6 +190,30 @@ AI_MONTHLY_BUDGET_USD = env.float("AI_MONTHLY_BUDGET_USD", default=15.0)
 DREAM_PROCESSING_MODE = env("DREAM_PROCESSING_MODE", default="thread")
 DREAM_PROCESSING_WORKERS = env.int("DREAM_PROCESSING_WORKERS", default=2)
 DREAM_STALLED_MINUTES = env.int("DREAM_STALLED_MINUTES", default=10)
+
+# --- En-têtes de sécurité -------------------------------------------------------------
+# Seules les sources prévues peuvent fournir scripts, styles et polices : un script
+# injecté (XSS) ou chargé depuis un autre domaine est bloqué par le navigateur.
+# 'unsafe-inline' pour les styles uniquement : variables CSS en attribut style (--emo).
+CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self' https://cdn.jsdelivr.net",
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com",
+        "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
+        "img-src 'self' data: blob:",
+        "media-src 'self' blob:",
+        "connect-src 'self'",
+        "worker-src 'self'",
+        "manifest-src 'self'",
+        "frame-ancestors 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "object-src 'none'",
+    ]
+)
+# Seule l'application elle-même peut demander le micro ; jamais caméra ni localisation.
+PERMISSIONS_POLICY = "microphone=(self), camera=(), geolocation=(), payment=(), usb=()"
 
 # --- Compte administrateur créé au démarrage (commande ensure_admin) -----------------
 ADMIN_USERNAME = env("ADMIN_USERNAME", default="")

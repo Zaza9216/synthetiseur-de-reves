@@ -223,3 +223,11 @@ Ce journal alimente le rapport technique et la code review.
   2. effets visuels allégés sur écran tactile (plus de flou `backdrop-filter`, étoiles fixes), car ils sont coûteux pour Safari iOS au défilement.
 - **Leçon :** mesurer avant de corriger. L'intuition aurait orienté vers l'optimisation du front (polices, CSS), qui pesait moins de 1 s sur les 51 s d'attente.
 - **Alternative si l'application devait vivre durablement :** une offre payante sans mise en veille (≈ 7 $ par mois), plutôt qu'un appel planifié.
+
+### Sécurité renforcée (#37)
+- **Force brute :** `django-axes`. Après 5 mots de passe incorrects pour un même identifiant **depuis une même adresse IP**, la connexion est bloquée 15 min (HTTP 429, page explicative). Le blocage combine identifiant et adresse IP, pour qu'un attaquant ne puisse pas bloquer le compte d'un autre depuis chez lui.
+- **🐞 Piège évité : l'adresse IP derrière un proxy.** Les tests ont montré que toutes les tentatives étaient attribuées à la même adresse. Le module de lecture des en-têtes de proxy (`django-ipware`) n'était pas installé, et axes se rabattait sur `REMOTE_ADDR`, qui est l'adresse du proxy de Render, **identique pour tous les visiteurs**. En production, 5 échecs de n'importe qui auraient bloqué tout le monde.
+  - **Correction :** fonction explicite `core.security.client_ip`. Le proxy de confiance **ajoute** l'adresse du visiteur à la fin de `X-Forwarded-For`, donc on lit la N-ième adresse depuis la fin (`TRUSTED_PROXY_COUNT`). Les valeurs placées plus à gauche peuvent être forgées par le client : elles sont ignorées (testé).
+  - **Vérification en production :** la page de supervision affiche l'adresse vue par l'application et l'en-tête brut.
+- **Content-Security-Policy :** seules l'application, jsDelivr (Bootstrap, Chart.js) et Google Fonts peuvent fournir scripts, styles et polices. **Aucun script en ligne autorisé** : une injection XSS ne s'exécuterait pas. `frame-ancestors 'none'`, `object-src 'none'`, `form-action 'self'`.
+- **Permissions-Policy :** seule l'application peut demander le micro ; caméra, localisation et paiement sont interdits.
