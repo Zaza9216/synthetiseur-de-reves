@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Connexion temporairement bloquée · Synthétiseur de rêves{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center py-4 py-md-5">
+  <div class="col-md-6 col-lg-5">
+    <div class="card">
+      <div class="card-body p-4 text-center">
+        <i class="bi bi-shield-lock fs-1" style="color: var(--lavender);" aria-hidden="true"></i>
+        <h1 class="h3 mt-3">Trop de tentatives</h1>
+        <p class="text-secondary">
+          Pour protéger votre compte, la connexion est suspendue pendant 15 minutes après
+          plusieurs mots de passe incorrects. Réessayez un peu plus tard.
+        </p>
+        <a href="{% url 'core:home' %}" class="btn btn-ghost rounded-pill px-4">Retour à l'accueil</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

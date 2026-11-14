@@ -16,6 +16,8 @@
   Version {{ version }} · {{ users }} compte{{ users|pluralize }} ·
   Sonde de santé : <a href="{% url 'core:health' %}">/health/</a> ·
   <a href="{% url 'admin:dreams_apicall_changelist' %}">Journal complet des appels</a>
+  <br>Votre adresse vue par l'application : <code data-testid="seen-ip">{{ seen_ip }}</code>
+  · X-Forwarded-For : <code>{{ forwarded_for }}</code>
 </p>
 
 {# --- Budget ------------------------------------------------------------------ #}

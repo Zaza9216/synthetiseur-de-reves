@@ -9,6 +9,7 @@ from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from core import metrics
+from core.security import client_ip
 
 logger = logging.getLogger(__name__)
 
@@ -70,5 +71,8 @@ def supervision(request: HttpRequest) -> HttpResponse:
         "users": metrics.user_count(),
         "errors": metrics.recent_errors(),
         "version": settings.APP_VERSION,
+        # Diagnostic : vérifie en production que l'adresse IP réelle est bien lue.
+        "seen_ip": client_ip(request),
+        "forwarded_for": request.META.get("HTTP_X_FORWARDED_FOR", "—"),
     }
     return render(request, "core/supervision.html", context)
