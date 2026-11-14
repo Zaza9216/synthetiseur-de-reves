@@ -211,3 +211,15 @@ Ce journal alimente le rapport technique et la code review.
 - **🐞 Défaut révélé :** des erreurs `Connection reset` dues au délai de 2 s de Gunicorn sur les connexions inactives. Corrigé avec `--keep-alive 75`.
 - **Production :** `DREAM_PROCESSING_WORKERS=4` (8 traitements en parallèle), pour rester compatible avec les limites de débit d'OpenAI.
 - Détails complets : `docs/test-de-charge.md`.
+
+### 🐞 Bug #35 : chargement très lent sur iPhone
+- **Signalement :** retour utilisateur, « ça met trop de temps à charger, notamment sur iPhone Safari ».
+- **Mesures avant d'agir :**
+  - première visite après inactivité : **50,9 s**, puis 0,08 s pour les suivantes ;
+  - serveur réveillé, iPhone simulé (Playwright, 4G lente, processeur ralenti ×4) : premier affichage **0,95 s**, page de **60 Ko**.
+- **Diagnostic :** le code n'est pas en cause. **L'offre gratuite de Render met le service en veille après 15 min sans requête**, et le premier visiteur attend le redémarrage du conteneur. Sur mobile, ce délai est encore plus mal vécu (l'utilisateur croit que le site est en panne).
+- **Corrections :**
+  1. tâche GitHub Actions planifiée (`keep-warm.yml`) qui appelle `/health/` toutes les 5 minutes. Le service ne s'endort plus, ce qui reste dans les 750 h par mois de l'offre gratuite (un service 24 h/24 en consomme environ 744) ;
+  2. effets visuels allégés sur écran tactile (plus de flou `backdrop-filter`, étoiles fixes), car ils sont coûteux pour Safari iOS au défilement.
+- **Leçon :** mesurer avant de corriger. L'intuition aurait orienté vers l'optimisation du front (polices, CSS), qui pesait moins de 1 s sur les 51 s d'attente.
+- **Alternative si l'application devait vivre durablement :** une offre payante sans mise en veille (≈ 7 $ par mois), plutôt qu'un appel planifié.
