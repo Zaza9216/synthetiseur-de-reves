@@ -128,3 +128,18 @@ def test_delete_modal_is_in_page_body_not_in_title(
     assert "<" not in title, f"Le titre contient du HTML : {title[:80]!r}"
     assert title.strip() == f"{escape(dream_with_files.title)} · Synthétiseur de rêves"
     assert 'id="delete-modal"' in body
+
+
+def test_delete_modal_is_unique(client: Client, user: Any, dream_with_files: Dream) -> None:
+    """Non-régression #23 (suite) : la fenêtre avait été insérée deux fois.
+
+    La première correction l'avait sortie de <title> sans voir la seconde copie :
+    deux éléments avec le même id (HTML invalide, libellés d'accessibilité en double).
+    Le test de bout en bout l'a détecté.
+    """
+    client.force_login(user)
+
+    html = client.get(reverse("dreams:detail", args=[dream_with_files.pk])).content.decode()
+
+    assert html.count('id="delete-modal"') == 1
+    assert html.count('id="delete-modal-title"') == 1
