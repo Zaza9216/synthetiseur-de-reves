@@ -28,9 +28,10 @@
           {% if user.is_staff %}
             <a class="nav-link" href="{% url 'core:supervision' %}"><i class="bi bi-activity"></i> <span class="d-none d-lg-inline">Supervision</span></a>
           {% endif %}
-          <span class="navbar-text text-light d-none d-sm-inline">
-            <i class="bi bi-person-circle"></i> {{ user.username }}
-          </span>
+          <a class="nav-link" href="{% url 'accounts:my_data' %}" title="Mes données">
+            <i class="bi bi-person-circle"></i><span class="d-none d-sm-inline"> {{ user.username }}</span>
+            <span class="visually-hidden d-sm-none">Mes données</span>
+          </a>
           <form method="post" action="{% url 'accounts:logout' %}" class="d-inline">
             {% csrf_token %}
             <button type="submit" class="btn btn-ghost btn-sm" title="Déconnexion"><i class="bi bi-box-arrow-right"></i><span class="visually-hidden visually-hidden-focusable"> Déconnexion</span><span class="d-none d-lg-inline"> Déconnexion</span></button>
@@ -53,7 +54,8 @@
   </main>
 
   <footer class="container py-4 text-center">
-    <i class="bi bi-moon-stars" aria-hidden="true"></i> Synthétiseur de rêves · vos rêves restent privés
+    <i class="bi bi-moon-stars" aria-hidden="true"></i> Synthétiseur de rêves · vos rêves restent privés ·
+    <a href="{% url 'core:privacy' %}">Confidentialité</a>
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

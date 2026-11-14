@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Mes données · Synthétiseur de rêves{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <h1 class="h2 mb-1">Mes données</h1>
+    <p class="text-secondary">
+      Compte <strong>{{ user.username }}</strong> · {{ user.email }} · inscrit le {{ user.date_joined|date:"j F Y" }}
+    </p>
+
+    <div class="row g-3 mb-4">
+      <div class="col-4"><div class="card card-body h-100"><div class="small text-secondary">Rêves</div><div class="fs-3 fw-bold" data-testid="dream-count">{{ dream_count }}</div></div></div>
+      <div class="col-4"><div class="card card-body h-100"><div class="small text-secondary">Enregistrements</div><div class="fs-3 fw-bold">{{ audio_count }}</div></div></div>
+      <div class="col-4"><div class="card card-body h-100"><div class="small text-secondary">Illustrations</div><div class="fs-3 fw-bold">{{ image_count }}</div></div></div>
+    </div>
+
+    <section class="card card-body mb-4" aria-labelledby="export-title">
+      <h2 class="h5" id="export-title"><i class="bi bi-download" aria-hidden="true"></i> Télécharger mes données</h2>
+      <p class="text-secondary mb-3">
+        Une archive ZIP contenant vos rêves dans un format ouvert (JSON), vos enregistrements vocaux
+        et vos illustrations. C'est votre droit à la portabilité.
+      </p>
+      <div><a href="{% url 'accounts:export' %}" class="btn btn-primary rounded-pill px-4"><i class="bi bi-file-earmark-zip"></i> Télécharger l'archive</a></div>
+    </section>
+
+    <section class="card card-body border-danger" aria-labelledby="delete-title">
+      <h2 class="h5 text-danger" id="delete-title"><i class="bi bi-trash" aria-hidden="true"></i> Supprimer mon compte</h2>
+      <p class="text-secondary">
+        Votre compte, vos {{ dream_count }} rêve{{ dream_count|pluralize }}, vos enregistrements et vos
+        illustrations seront <strong>supprimés définitivement</strong>. Cette action est irréversible :
+        pensez à télécharger vos données avant.
+      </p>
+      <form method="post" novalidate>
+        {% csrf_token %}
+        {% include "includes/form_fields.html" with form=form %}
+        <button type="submit" class="btn btn-outline-danger rounded-pill px-4">Supprimer définitivement mon compte</button>
+      </form>
+    </section>
+
+    <p class="small text-secondary mt-4">
+      <i class="bi bi-shield-lock" aria-hidden="true"></i>
+      Pour en savoir plus sur le traitement de vos données, consultez la
+      <a href="{% url 'core:privacy' %}">politique de confidentialité</a>.
+    </p>
+  </div>
+</div>
+{% endblock %}

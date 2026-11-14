@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Confidentialité · Synthétiseur de rêves{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <article class="col-lg-8">
+    <h1 class="h2">Politique de confidentialité</h1>
+    <p class="text-secondary">
+      Vos rêves peuvent révéler des éléments très personnels (émotions, santé, relations).
+      Ils sont traités avec le plus grand soin, uniquement pour vous rendre le service.
+    </p>
+
+    <h2 class="h5 mt-4">Données traitées</h2>
+    <ul>
+      <li><strong>Compte</strong> : identifiant, adresse email, mot de passe (stocké chiffré de façon irréversible).</li>
+      <li><strong>Rêves</strong> : enregistrement vocal, transcription, émotion détectée, illustration générée, dates.</li>
+      <li><strong>Sécurité</strong> : adresse IP et identifiant des tentatives de connexion échouées, pour bloquer les attaques.</li>
+      <li><strong>Technique</strong> : journaux de fonctionnement (durées, erreurs), qui <strong>ne contiennent jamais le contenu de vos rêves</strong>.</li>
+    </ul>
+
+    <h2 class="h5 mt-4">Pourquoi</h2>
+    <p>Uniquement pour fournir le service que vous demandez : transcrire, analyser et illustrer vos rêves, puis vous les présenter. Aucune publicité, aucune revente, aucun profilage commercial.</p>
+
+    <h2 class="h5 mt-4">Qui y a accès</h2>
+    <ul>
+      <li><strong>Vous seul</strong> voyez vos rêves, vos enregistrements et vos illustrations.</li>
+      <li><strong>OpenAI</strong> (sous-traitant, États-Unis) reçoit l'enregistrement et le récit le temps de les transcrire, d'analyser l'émotion et de générer l'image. Les données envoyées via l'API ne servent pas à entraîner ses modèles ; elles peuvent être conservées jusqu'à 30 jours pour la détection d'abus.</li>
+      <li><strong>Render</strong> (hébergeur, centre de données de Francfort, Union européenne) héberge l'application et la base de données.</li>
+    </ul>
+
+    <h2 class="h5 mt-4">Combien de temps</h2>
+    <p>Vos rêves sont conservés tant que vous ne les supprimez pas. Supprimer un rêve ou votre compte efface immédiatement les données et les fichiers associés. Les tentatives de connexion échouées sont oubliées après une connexion réussie.</p>
+
+    <h2 class="h5 mt-4">Vos droits</h2>
+    <ul>
+      <li><strong>Accès et portabilité</strong> : téléchargez toutes vos données depuis <a href="{% url 'accounts:my_data' %}">Mes données</a>.</li>
+      <li><strong>Effacement</strong> : supprimez un rêve depuis sa page, ou votre compte entier depuis <a href="{% url 'accounts:my_data' %}">Mes données</a>.</li>
+      <li><strong>Réclamation</strong> : vous pouvez saisir la CNIL (<a href="https://www.cnil.fr" rel="noopener">cnil.fr</a>).</li>
+    </ul>
+
+    <h2 class="h5 mt-4">Sécurité</h2>
+    <p class="mb-5">Connexion chiffrée (HTTPS), fichiers accessibles uniquement à leur propriétaire, blocage des tentatives de connexion répétées, données hébergées dans l'Union européenne.</p>
+  </article>
+</div>
+{% endblock %}
