@@ -3,15 +3,19 @@
 [![CI](https://github.com/Zaza9216/synthetiseur-de-reves/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Zaza9216/synthetiseur-de-reves/actions/workflows/ci.yml)
 
 **🔗 Application en ligne : https://synthetiseur-de-reves.onrender.com**
-*(offre gratuite : le premier chargement après une période d'inactivité peut prendre environ 1 minute)*
 
 Application web qui transforme un rêve raconté à voix haute en souvenir illustré :
 
-1. **Enregistrement** du rêve au micro, directement dans le navigateur
-2. **Transcription** automatique de la voix en texte
-3. **Classification émotionnelle** du rêve (heureux, stressant, neutre…)
-4. **Génération d'une image** qui illustre le rêve
-5. **Tableau de bord** personnel : historique, filtres par date et par humeur, émotions dominantes
+1. **Enregistrement** du rêve au micro (avec visualisation de la voix) ou import d'un fichier audio
+2. **Transcription** automatique de la voix en texte (`gpt-4o-transcribe`)
+3. **Classification émotionnelle** du rêve parmi 6 émotions (`gpt-4o-mini`, lexique de secours)
+4. **Génération d'une image** qui illustre le rêve (`gpt-image-1-mini`)
+5. **Tableau de bord** personnel : filtres par date, humeur et texte, fréquence, émotion dominante, évolution
+6. **« Revivre mon rêve »** *(bonus du sujet)* : micro-vidéo (image animée et récit) et ambiance sonore générée selon l'émotion
+7. **Espace « Mes données »** : export complet et suppression du compte (RGPD)
+8. **Application installable** sur l'écran d'accueil du téléphone (PWA)
+
+📸 Captures : [`docs/captures/`](docs/captures/) · 📓 Décisions et difficultés : [`docs/journal-de-bord.md`](docs/journal-de-bord.md) · 📊 Test de charge : [`docs/test-de-charge.md`](docs/test-de-charge.md) · ✅ Conformité au sujet : [`docs/conformite-sujet.md`](docs/conformite-sujet.md)
 
 > Projet réalisé dans le cadre du titre RNCP, Bloc 3 : phase de production.
 
@@ -24,9 +28,11 @@ Application web qui transforme un rêve raconté à voix haute en souvenir illus
 | Langage | Python 3.12 |
 | Framework web | Django 5.2 (LTS) |
 | Base de données | PostgreSQL en production, SQLite en local |
-| Interface | Bootstrap 5 |
+| Interface | Bootstrap 5, thème « Nuit étoilée » (CSS), Chart.js, Web Audio API |
+| IA | OpenAI : transcription, émotion (sortie structurée), image |
 | Gestion des dépendances | [uv](https://docs.astral.sh/uv/) |
-| Qualité | ruff (lint PEP 8 + docstrings Google), pytest, pytest-cov |
+| Qualité | ruff (lint PEP 8 + docstrings Google), pytest, pytest-cov, Playwright (navigateurs), Locust (charge) |
+| Sécurité | django-axes (force brute), CSP, Permissions-Policy, HSTS |
 | CI/CD | GitHub Actions |
 | Conteneur | Docker / Docker Compose |
 | Serveur applicatif | Gunicorn + WhiteNoise |
@@ -115,7 +121,7 @@ L'infrastructure est décrite dans [`render.yaml`](render.yaml) : un service web
 | Limite | Conséquence | Parade |
 |---|---|---|
 | Disque éphémère | Les fichiers locaux sont effacés à chaque redémarrage | Audio et images stockés **dans PostgreSQL** (`MEDIA_STORAGE=database`) |
-| Mise en veille après 15 min d'inactivité | Premier chargement d'environ 1 min | Acceptable pour une démonstration |
+| Mise en veille après 15 min d'inactivité | Premier chargement d'environ 50 s | **UptimeRobot** appelle `/health/` toutes les 5 min (et tâche GitHub `keep-warm.yml` en secours) |
 | Base gratuite valable 30 jours | Elle doit être recréée ensuite | À recréer avant la soutenance si besoin |
 | Pas de terminal sur le serveur | Impossible de lancer `createsuperuser` | Commande `ensure_admin` au démarrage (variables `ADMIN_*`) |
 
@@ -141,21 +147,28 @@ L'infrastructure est décrite dans [`render.yaml`](render.yaml) : un service web
 | **Logs JSON** (`LOG_FORMAT=json`) | Une ligne JSON par événement (niveau, module, message, champs utiles) |
 | **Requêtes lentes** | Journalisées au-delà de `SLOW_REQUEST_MS`, en-tête `Server-Timing` sur chaque réponse |
 | **Sentry** (facultatif) | Erreurs avec trace complète, sans données personnelles (`send_default_pii=False`) |
+| **UptimeRobot** (externe) | Disponibilité vue de l'extérieur toutes les 5 min, alerte par email en cas de panne |
 
 Pour accéder à la supervision, créez un compte administrateur : `uv run python manage.py createsuperuser`.
 
 ## Structure du projet
 
 ```
-config/      Configuration Django (settings, urls, wsgi)
-core/        Pages transverses (accueil, santé)
-templates/   Gabarits HTML communs
-static/      Fichiers statiques
-tests/       Tests automatisés (pytest)
-scripts/     Scripts d'installation
+config/           Configuration Django (settings, urls, wsgi)
+accounts/         Comptes : inscription, connexion, « Mes données » (export, suppression)
+dreams/           Rêves : modèles, vues, pipeline de traitement, tableau de bord
+dreams/ai/        Services d'IA : transcription, émotion, image, budget, journal des appels
+core/             Transverse : accueil, santé, supervision, sécurité, PWA, stockage en base
+templates/        Gabarits HTML communs
+static/           CSS du thème, JavaScript (enregistreur, suivi, graphiques, ambiance), icônes
+tests/            Tests unitaires et d'intégration (pytest)
+tests/e2e/        Tests de bout en bout dans de vrais navigateurs (Playwright)
+loadtests/        Test de charge (Locust)
+scripts/          Installation, démarrage en production, captures d'écran
+docs/             Journal de bord, test de charge, conformité, captures
 ```
 
 ## Organisation
 
-- Suivi du projet : **GitHub Projects**, en sprints d'une semaine
+- Suivi du projet : **[GitHub Projects](https://github.com/users/Zaza9216/projects/2)**, en 4 sprints
 - Workflow Git : une branche par fonctionnalité → Pull Request → CI verte → merge dans `main`

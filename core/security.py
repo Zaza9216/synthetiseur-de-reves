@@ -1,5 +1,7 @@
 """Outils de sécurité transverses."""
 
+from typing import Any
+
 from django.conf import settings
 from django.http import HttpRequest
 
@@ -29,3 +31,20 @@ def client_ip(request: HttpRequest) -> str:
     if len(addresses) < proxies:
         return remote_addr
     return addresses[-proxies]
+
+
+def normalized_username(request: HttpRequest, credentials: dict[str, Any] | None) -> str:
+    """Identifiant en minuscules, pour compter les tentatives de connexion par compte.
+
+    Sans normalisation, « Bob » et « bob » auraient chacun leur propre compteur :
+    un attaquant doublerait (ou plus) son nombre d'essais.
+
+    Args:
+        request: Requête HTTP entrante.
+        credentials: Identifiants transmis à l'authentification, s'il y en a.
+
+    Returns:
+        L'identifiant normalisé (chaîne vide s'il est absent).
+    """
+    username = (credentials or {}).get("username") or request.POST.get("username", "")
+    return str(username).strip().lower()

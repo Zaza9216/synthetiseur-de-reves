@@ -14,7 +14,8 @@
            {% if field.value and field.field.widget.input_type != 'password' %}value="{{ field.value }}"{% endif %}
            {% if field.field.required %}required{% endif %}
            {% if field.errors %}aria-invalid="true" aria-describedby="{{ field.id_for_label }}-errors"{% elif field.help_text %}aria-describedby="{{ field.id_for_label }}-help"{% endif %}
-           {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}>
+           {% if field.field.widget.attrs.autocomplete %}autocomplete="{{ field.field.widget.attrs.autocomplete }}"{% endif %}
+           {% if field.field.widget.attrs.autocapitalize %}autocapitalize="{{ field.field.widget.attrs.autocapitalize }}" autocorrect="{{ field.field.widget.attrs.autocorrect }}" spellcheck="{{ field.field.widget.attrs.spellcheck }}"{% endif %}>
     {% if field.errors %}
       <div class="invalid-feedback" id="{{ field.id_for_label }}-errors">
         {% for error in field.errors %}<div>{{ error }}</div>{% endfor %}
