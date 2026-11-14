@@ -26,7 +26,8 @@ dev = [
 [tool.pytest.ini_options]
 DJANGO_SETTINGS_MODULE = "config.settings"
 testpaths = ["tests"]
-addopts = "--cov --cov-report=term-missing"
+addopts = "--cov --cov-report=term-missing -m 'not e2e'"
+markers = ["e2e: tests de bout en bout dans de vrais navigateurs (lents, lancés à part)"]
 filterwarnings = ["ignore:No directory at:UserWarning"]
 
 [tool.coverage.run]

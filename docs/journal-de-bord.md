@@ -258,3 +258,17 @@ Ce journal alimente le rapport technique et la code review.
   - pas d'animation si l'utilisateur préfère réduire les mouvements ;
   - le récit est échappé dans le HTML (testé avec une balise `<script>`).
 - **🐞 Défaut corrigé avant la PR :** la fenêtre plein écran passait **sous** le pied de page, car `main` créait un plan d'empilement (`z-index: 1`). Le contenu reste au-dessus du ciel étoilé sans `z-index`.
+
+### Tests de bout en bout dans de vrais navigateurs (#40)
+- **Pourquoi :** c'est la leçon du bug #23. Les tests unitaires lisaient le HTML sans jamais **cliquer**. Playwright pilote maintenant de vrais navigateurs : **Chromium** (ordinateur, Android Pixel 7) et **WebKit**, le moteur de Safari (iPhone 13).
+- **Parcours couverts :**
+  - inscription, envoi d'un audio, résultat, mode immersif, suppression par un vrai clic ;
+  - **enregistrement au micro** avec un micro simulé par Chromium ;
+  - tableau de bord (statistiques, graphique, filtre, recherche) ;
+  - absence de débordement horizontal sur mobile ;
+  - export RGPD et suppression du compte.
+- **Garde-fou transversal :** chaque test échoue si la console contient **une erreur JavaScript ou une violation CSP**. Les messages internes de WebKit sans affichage, qui ne trouve pas les icônes de ses propres contrôles audio, sont filtrés explicitement.
+- **CI :** job `e2e` avec Chromium et WebKit installés. **Le déploiement en dépend désormais.**
+- **🐞 Bug trouvé dès le premier lancement : la fenêtre de suppression était dans la page en double.** Le script d'édition de la PR #21 avait remplacé **tous** les `{% endblock %}` du gabarit : la fenêtre avait été insérée dans `title` **et** dans `content`. Le correctif #24 avait déplacé la copie du titre sans voir la seconde. Résultat : deux `id="delete-modal"`, du HTML invalide et des libellés d'accessibilité en double. Le bouton fonctionnait (Bootstrap prend le premier élément trouvé), donc aucun utilisateur ne s'en serait aperçu, mais le mode strict de Playwright refuse un sélecteur ambigu.
+  - **Leçon pour la code review :** un correctif peut traiter le symptôme sans traiter toute la cause. Il faut relire le diff **d'origine** (ici PR #21) et pas seulement l'endroit où le symptôme apparaît, et écrire des tests de non-régression qui vérifient l'**invariant** (« une seule fenêtre ») plutôt que le symptôme (« pas dans le titre »).
+- **Stabilité :** 11 tests sur 3 profils, passés 3 fois de suite en local (≈ 18 s).

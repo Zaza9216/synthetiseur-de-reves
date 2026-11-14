@@ -93,6 +93,8 @@ Le fichier `.env` n'est **jamais** commité.
 uv run ruff check .          # lint (PEP 8, imports, docstrings Google)
 uv run ruff format .         # formatage automatique
 uv run pytest                # tests + rapport de couverture (seuil minimal : 70 %)
+uv run pytest -m e2e --no-cov # tests de bout en bout dans de vrais navigateurs
+                             # (une fois : uv run playwright install chromium webkit)
 ```
 
 ## Déploiement (Render)
@@ -120,9 +122,10 @@ L'infrastructure est décrite dans [`render.yaml`](render.yaml) : un service web
 À chaque push et à chaque Pull Request, GitHub Actions :
 1. vérifie le lint et le formatage ;
 2. lance les tests sur une vraie base PostgreSQL, avec contrôle de couverture ;
-3. vérifie la configuration de sécurité de production (`manage.py check --deploy`) ;
-4. construit l'image Docker ;
-5. **sur `main` uniquement**, déploie sur Render et vérifie la mise en ligne de la nouvelle version.
+3. rejoue les parcours utilisateurs dans de vrais navigateurs (Chromium pour ordinateur et Android, WebKit pour iPhone) ;
+4. vérifie la configuration de sécurité de production (`manage.py check --deploy`) ;
+5. construit l'image Docker ;
+6. **sur `main` uniquement**, déploie sur Render et vérifie la mise en ligne de la nouvelle version.
 
 ---
 
