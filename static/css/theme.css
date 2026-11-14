@@ -403,6 +403,34 @@ footer {
   font-size: 0.85rem;
 }
 
+/* --- Mobiles et tablettes : effets allégés ------------------------------------------------------
+   Le flou d'arrière-plan et les animations plein écran sont coûteux pour Safari iOS, surtout au
+   défilement. Sur écran tactile, on garde l'ambiance avec des fonds semi-opaques, sans flou. */
+@media (hover: none), (max-width: 768px) {
+  .card,
+  .navbar-night,
+  .alert {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .card {
+    background: rgba(26, 22, 64, 0.72);
+  }
+  .navbar-night {
+    background: rgba(10, 8, 32, 0.94);
+  }
+  .sky::after {
+    animation: none;
+    opacity: 0.6;
+  }
+  body {
+    background-attachment: scroll;
+  }
+  .dream-card:hover {
+    transform: none;
+  }
+}
+
 /* --- Accessibilité : focus visible et mouvements réduits ------------------------------------- */
 :focus-visible {
   outline: 2px solid var(--lavender);

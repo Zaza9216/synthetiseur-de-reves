@@ -1,0 +1,29 @@
+name: Maintien en éveil
+
+# L'offre gratuite de Render met le service en veille après 15 minutes sans
+# requête : la visite suivante attend alors ≈ 50 s le redémarrage. Un appel
+# régulier à la sonde de santé garde le service éveillé.
+# (GitHub peut retarder les tâches planifiées de quelques minutes : 5 min laisse de la marge.)
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Appel de /health/
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Réveiller / garder éveillé le service
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+        run: |
+          if [ -z "$APP_URL" ]; then
+            echo "::warning::Variable APP_URL absente : rien à faire."
+            exit 0
+          fi
+          curl --fail --silent --show-error --max-time 120 --retry 2 \
+               --write-out "HTTP %{http_code} en %{time_total} s\n" --output /dev/null \
+               "$APP_URL/health/"
