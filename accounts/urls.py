@@ -15,4 +15,6 @@ urlpatterns = [
         name="login",
     ),
     path("deconnexion/", auth_views.LogoutView.as_view(), name="logout"),
+    path("mes-donnees/", views.my_data, name="my_data"),
+    path("mes-donnees/export.zip", views.export_data, name="export"),
 ]

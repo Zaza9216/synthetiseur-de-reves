@@ -231,3 +231,10 @@ Ce journal alimente le rapport technique et la code review.
   - **Vérification en production :** la page de supervision affiche l'adresse vue par l'application et l'en-tête brut.
 - **Content-Security-Policy :** seules l'application, jsDelivr (Bootstrap, Chart.js) et Google Fonts peuvent fournir scripts, styles et polices. **Aucun script en ligne autorisé** : une injection XSS ne s'exécuterait pas. `frame-ancestors 'none'`, `object-src 'none'`, `form-action 'self'`.
 - **Permissions-Policy :** seule l'application peut demander le micro ; caméra, localisation et paiement sont interdits.
+
+### RGPD : export, suppression du compte, confidentialité (#38)
+- **Constat :** on pouvait supprimer un rêve (droit à l'effacement, partiel), mais ni récupérer ses données ni fermer son compte. Pour des données aussi intimes que des rêves, qui peuvent révéler des éléments de santé, c'était une lacune.
+- **Portabilité (art. 20) :** export ZIP en un clic, avec `donnees.json` (format ouvert), les audios, les images et un `LISEZMOI.txt`. L'archive est construite dans un `SpooledTemporaryFile` : en mémoire tant qu'elle est petite, puis basculée sur disque au-delà de 10 Mo, pour ne pas saturer la mémoire du serveur.
+- **Effacement (art. 17) :** suppression du compte confirmée par le mot de passe. La cascade supprime les rêves, et le signal `post_delete` créé au Sprint 1 efface tous les fichiers (testé).
+- **Information (art. 13) :** page « Confidentialité » qui détaille les données traitées, les finalités, les sous-traitants (OpenAI aux États-Unis, Render à Francfort), la durée de conservation, les droits et la CNIL. Elle est liée depuis le pied de page et l'inscription.
+- **Note :** les journaux techniques ne contiennent jamais le contenu des rêves, seulement des identifiants. C'est un choix fait dès le Sprint 2.

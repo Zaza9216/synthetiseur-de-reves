@@ -76,3 +76,8 @@ def supervision(request: HttpRequest) -> HttpResponse:
         "forwarded_for": request.META.get("HTTP_X_FORWARDED_FOR", "—"),
     }
     return render(request, "core/supervision.html", context)
+
+
+def privacy(request: HttpRequest) -> HttpResponse:
+    """Politique de confidentialité : données traitées, finalités, sous-traitants, droits."""
+    return render(request, "core/privacy.html")
