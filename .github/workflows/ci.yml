@@ -53,6 +53,11 @@ jobs:
     needs: [lint]
     env:
       SECRET_KEY: ci-only-not-secret
+      # Le serveur de test parle HTTP : pas de redirection HTTPS, pas de HSTS, cookies en HTTP.
+      # (Lus au démarrage du serveur de test, avant toute fixture : voir tests/e2e/conftest.py.)
+      SECURE_SSL_REDIRECT: "False"
+      SECURE_HSTS_SECONDS: "0"
+      SECURE_COOKIES: "False"
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: astral-sh/setup-uv@v10.3.3

@@ -41,6 +41,25 @@ class BrowserSession:
         assert not self.errors, "Erreurs dans la console :\n" + "\n".join(self.errors)
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _http_server_required() -> None:
+    """Vérifie que le serveur de test acceptera le HTTP simple.
+
+    Le serveur de test démarre **avant** les fixtures de réglages : son middleware
+    de sécurité a déjà lu ``SECURE_SSL_REDIRECT``. Si la configuration de production
+    est active (``DEBUG=False`` sans ``.env``), le navigateur serait redirigé vers
+    ``https://localhost`` et tous les tests échoueraient avec une erreur TLS obscure.
+    """
+    from django.conf import settings
+
+    if settings.SECURE_SSL_REDIRECT or settings.SECURE_HSTS_SECONDS:
+        pytest.exit(
+            "Tests navigateurs : lancer avec SECURE_SSL_REDIRECT=False SECURE_HSTS_SECONDS=0 "
+            "SECURE_COOKIES=False (ou DEBUG=True dans .env).",
+            returncode=4,
+        )
+
+
 @pytest.fixture(autouse=True)
 def _e2e_settings(settings: Settings) -> None:
     """Traitement immédiat avec l'IA simulée, cookies utilisables en HTTP."""

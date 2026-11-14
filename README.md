@@ -94,7 +94,9 @@ uv run ruff check .          # lint (PEP 8, imports, docstrings Google)
 uv run ruff format .         # formatage automatique
 uv run pytest                # tests + rapport de couverture (seuil minimal : 70 %)
 uv run pytest -m e2e --no-cov # tests de bout en bout dans de vrais navigateurs
-                             # (une fois : uv run playwright install chromium webkit)
+                             # (une fois : uv run playwright install chromium webkit ;
+                             #  sans DEBUG=True dans .env, ajouter SECURE_SSL_REDIRECT=False
+                             #  SECURE_HSTS_SECONDS=0 SECURE_COOKIES=False)
 ```
 
 ## Déploiement (Render)
