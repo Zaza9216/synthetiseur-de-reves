@@ -162,3 +162,21 @@ def test_export_et_suppression_du_compte(
     expect(page.get_by_text("toutes vos données ont été supprimés")).to_be_visible()
     assert not get_user_model().objects.filter(username="rgpd").exists()
     chromium_session.assert_no_errors()
+
+
+def test_connexion_insensible_aux_majuscules_sur_iphone(
+    live_server: Any, browser_session: BrowserSession
+) -> None:
+    """#46 : inscription « Lune », connexion « lune » (majuscule automatique de l'iPhone)."""
+    page, base = browser_session.page, live_server.url
+    sign_up(page, base, "Lune")
+    page.click("button[title='Déconnexion']")
+
+    page.goto(f"{base}/comptes/connexion/")
+    expect(page.locator("#id_username")).to_have_attribute("autocapitalize", "none")
+    page.fill("#id_username", "lune")
+    page.fill("#id_password", STRONG_PASSWORD)
+    page.click("button[type=submit]")
+
+    expect(page).to_have_url(re.compile(r"/reves/$"))
+    browser_session.assert_no_errors()

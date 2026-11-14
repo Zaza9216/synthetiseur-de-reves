@@ -276,3 +276,31 @@ Ce journal alimente le rapport technique et la code review.
   - **Correction :** le job CI fournit `SECURE_SSL_REDIRECT=False`, `SECURE_HSTS_SECONDS=0` et `SECURE_COOKIES=False`. Une vérification en début de session arrête les tests avec un message explicite si ces réglages manquent.
   - **Méthode :** reproduction locale en retirant le `.env` (11 échecs identiques à la CI), puis vérification des trois cas : sans variables, message clair ; avec variables, 11 réussites ; avec le `.env` local, 11 réussites.
   - **Leçon (2ᵉ fois dans le projet, cf. Sprint 1) :** toujours reproduire les conditions de la CI en local avant de pousser.
+
+### 🐞 Bug #46 : connexion impossible sur iPhone
+- **Signalement :** « je n'arrive plus à me connecter à mon compte ».
+- **Diagnostic :** la connexion fonctionnait en production (testée avec un compte inexistant : message d'erreur normal, aucune erreur serveur). Cause la plus probable : **Safari iOS met une majuscule automatique** à la première lettre des champs texte. L'identifiant étant sensible à la casse, `Othmane` ≠ `othmane`. Après 5 essais, la protection anti-force brute ajoutée la veille bloquait en plus le compte 15 min, ce qui aggravait la frustration.
+- **Correction :**
+  - module d'authentification `CaseInsensitiveModelBackend` (la correspondance exacte reste prioritaire s'il existait d'anciens comptes ne différant que par la casse) ;
+  - inscription refusée si l'identifiant existe déjà avec une autre casse ;
+  - compteur anti-force brute normalisé en minuscules (sinon `Bob` et `bob` auraient chacun 5 essais) ;
+  - `autocapitalize="none"`, `autocorrect="off"` et `spellcheck="false"` sur les champs identifiant.
+- **Tests :** 16 tests unitaires et 1 test navigateur sur les 3 profils (inscription « Lune », connexion « lune »).
+- **Leçon :** une mesure de sécurité (blocage après 5 échecs) peut amplifier un défaut d'ergonomie. Il faut tester les parcours sur les vrais appareils des utilisateurs.
+
+### Mise en veille Render : un appel planifié GitHub ne suffit pas
+- **Constat :** malgré la tâche `keep-warm.yml`, la page de réveil Render est réapparue. **Aucune** exécution planifiée en 31 min après l'ajout de la tâche, alors que le lancement manuel fonctionnait. GitHub précise que les tâches planifiées peuvent être retardées ou ignorées en cas de charge.
+- **Solution :** **UptimeRobot** (gratuit, externe) appelle `/health/` toutes les 5 min. Il apporte en plus une **supervision de disponibilité vue de l'extérieur**, avec alerte par email en cas de panne. La tâche GitHub reste en secours.
+- **Alternative pour une vraie mise en production :** offre Render payante sans mise en veille (≈ 7 $ par mois).
+
+### ✅ Clôture de la partie code : audit final
+| Contrôle | Résultat |
+|---|---|
+| Tests unitaires et d'intégration | 299 OK, couverture 99 % |
+| Tests navigateurs (Chromium ordinateur, Android, WebKit iPhone) | 14 OK |
+| Lint et formatage (ruff, PEP 8 + docstrings Google) | OK |
+| Migrations | À jour |
+| `manage.py check --deploy` (production) | Aucun problème |
+| Vulnérabilités connues des dépendances (`pip-audit`) | Aucune |
+| Secrets dans **tout** l'historique Git | Aucun (`.env` jamais commité) |
+| Commits directs sur `main` | Aucun (tout par Pull Request) |

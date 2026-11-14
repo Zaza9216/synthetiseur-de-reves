@@ -110,7 +110,8 @@ AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = [
     # Vérifie d'abord que le compte / l'adresse IP n'est pas bloqué (force brute).
     "axes.backends.AxesStandaloneBackend",
-    "django.contrib.auth.backends.ModelBackend",
+    # Identifiant insensible à la casse (majuscule automatique sur iPhone).
+    "accounts.backends.CaseInsensitiveModelBackend",
 ]
 
 # Protection contre la force brute (django-axes) : 5 échecs pour un même identifiant
@@ -122,6 +123,8 @@ AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_TEMPLATE = "registration/lockout.html"
 # Adresse réelle du visiteur derrière le proxy de Render (voir core/security.py).
 AXES_CLIENT_IP_CALLABLE = "core.security.client_ip"
+# « Bob » et « bob » comptent comme le même compte pour le blocage.
+AXES_USERNAME_CALLABLE = "core.security.normalized_username"
 # Nombre de proxys de confiance devant l'application (1 : le répartiteur de Render).
 TRUSTED_PROXY_COUNT = env.int("TRUSTED_PROXY_COUNT", default=1)
 LOGIN_URL = "accounts:login"
